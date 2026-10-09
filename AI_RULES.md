@@ -6,3 +6,4 @@
 - interprete o MEU JEITO de escrever código olhando os outros arquivos que eu fiz. Reproduza os códigos que você fizer da mesma maneira
 - antes de criar o VISUAL de qualquer coisa, olhe, interprete, pegue referências de como está o MEU DESIGN atual e procure visuais parecidos na internet
 - faça perguntas, se necessário e restar alguma dúvida, antes de criar qualquer coisa
+- foque em simplicidade ao máximo. O código deve ser SIMPLES de entender, a medida do possível obviamente
