@@ -1,3 +1,7 @@
+.feed-card {
+	cursor: pointer;
+}
+
 .legenda-feed-card {
 	display: flex;
 	align-items: center;

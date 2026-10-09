@@ -22,6 +22,10 @@
 	gap: 15px;
 }
 
+.header .coluna-header a {
+	text-decoration: none;
+}
+
 .header .coluna-header img {
 	width: 28px;
 	height: 28px;

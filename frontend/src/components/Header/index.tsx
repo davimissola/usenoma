@@ -19,8 +19,12 @@ export function Header() {
 			</div>
 
 			<div className='coluna-header'>
-				<img src={userSvg} alt="User" />
-				<img src={shoppingCart} alt="Cart" />
+				<a href="#">
+					<img src={userSvg} alt="User" />
+				</a>
+				<a href="#">
+					<img src={shoppingCart} alt="Cart" />
+				</a>
 			</div>
 
 			<Menu menuAberto={menuAberto} setMenuAberto={setMenuAberto} />

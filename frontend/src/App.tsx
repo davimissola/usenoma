@@ -1,15 +1,14 @@
-import { Feed } from "./pages/Feed"
-
-
+import { Route, Routes } from 'react-router-dom'
+import { Feed } from './pages/Feed'
 
 
 function App() {
 
-  return (
-    <>
-      <Feed />
-    </>
-  )
+	return (
+		<Routes>
+			<Route path='/' element={<Feed />} />
+		</Routes>
+	)
 }
 
 export default App
