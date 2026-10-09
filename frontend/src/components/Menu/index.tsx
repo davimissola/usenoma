@@ -3,6 +3,7 @@ import tiktokSvg from '../../assets/svg/icons/tiktok-logo-thin.svg'
 import instagramSvg from '../../assets/svg/icons/instagram-logo-thin.svg'
 import logoTeste from '../../assets/svg/logos/logoTeste.png'
 import './menu.css'
+import { Link } from 'react-router-dom'
 
 
 type MenuProps = {
@@ -24,10 +25,10 @@ export function Menu({ menuAberto, setMenuAberto }: MenuProps) {
 			</div>
 
 			<nav className='navegacao-menu' aria-label="Navegação principal">
-                    <a href='/' onClick={() => setMenuAberto(false)}>Início</a>
-					<a href='/produtos' onClick={() => setMenuAberto(false)}>Produtos</a>
-					<a href='/marcas' onClick={() => setMenuAberto(false)}>Marcas</a>
-					<a href='/cadastrar' onClick={() => setMenuAberto(false)}>Cadastrar</a>
+                    <Link to='/' onClick={() => setMenuAberto(false)}>Início</Link>
+					<a href='/explorar' onClick={() => setMenuAberto(false)}>Explorar</a>
+					<a href='/pesquisar' onClick={() => setMenuAberto(false)}>Pesquisar</a>
+					<Link to='/acesso' onClick={() => setMenuAberto(false)}>Cadastrar</Link>
 					<a href='/seja-parceiro' onClick={() => setMenuAberto(false)}>Seja parceiro</a>
 			</nav>
 

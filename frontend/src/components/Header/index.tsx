@@ -5,6 +5,7 @@ import './header.css'
 import { Menu } from '../Menu'
 import userSvg from '../../assets/svg/icons/user-thin.svg'
 import shoppingCart from '../../assets/svg/icons/shopping-cart-simple-thin.svg'
+import { Link } from 'react-router-dom'
 
 
 export function Header() {
@@ -19,9 +20,9 @@ export function Header() {
 			</div>
 
 			<div className='coluna-header'>
-				<a href="#">
+				<Link to='/acesso'>
 					<img src={userSvg} alt="User" />
-				</a>
+				</Link>
 				<a href="#">
 					<img src={shoppingCart} alt="Cart" />
 				</a>

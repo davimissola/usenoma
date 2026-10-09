@@ -43,6 +43,11 @@
     font-family: 'Inter';
     font-weight: 200;
     letter-spacing: -0.06em;
+    transition: all 0.3s ease;
+}
+
+.navegacao-menu a:hover {
+    transform: translateX(15px);
 }
 
 .redes-menu {

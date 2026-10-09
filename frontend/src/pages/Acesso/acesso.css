@@ -1,0 +1,83 @@
+.pages-acesso {
+	position: relative;
+	width: 100%;
+	height: 100vh;
+	height: 100dvh;
+	overflow: hidden;
+	background-color: #000000;
+}
+
+.pages-acesso .video-acesso {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.pages-acesso::after {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: 40%;
+	background: linear-gradient(to top, #000000, transparent);
+	pointer-events: none;
+}
+
+.pages-acesso .conteudo-acesso {
+	position: relative;
+	z-index: 1;
+}
+
+.voltar-acesso {
+	display: inline-block;
+	margin-top: 20px;
+	margin-left: 4vw;
+}
+
+.conteudo-acesso-bottom {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	margin: 53vh auto 0;
+	width: 600px;
+	max-width: 95%;
+	text-align: center;
+}
+
+.conteudo-acesso h2 {
+	line-height: 0.95;
+	font-size: clamp(2rem, 2.5rem + 4vw, 5rem);
+	color: #FFFFFF;
+}
+
+.conteudo-acesso-buttons {
+	margin-top: 3vh;
+	display: flex;
+	gap: 40px;
+}
+
+.conteudo-acesso-buttons a {
+	text-decoration: none;
+	color: #FFFFFF;
+	border: 1px solid #FFFFFF55;
+	padding: 10px 40px;
+	border-radius: 50px;
+	transition: all 0.2s ease;
+}
+
+.conteudo-acesso-buttons a:hover {
+	background-color: #FFFFFF05;
+}
+
+
+
+
+
+@media (min-width: 1024px) {
+	.pages-acesso .video-acesso {
+		object-position: center 70%;
+	}
+}
