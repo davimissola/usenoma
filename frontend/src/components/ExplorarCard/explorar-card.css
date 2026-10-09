@@ -1,0 +1,86 @@
+.div-card-explorar {
+	position: relative;
+	width: 100%;
+	max-width: 100%;
+	min-width: 0;
+	height: 100vh;
+	height: 100dvh;
+	overflow: hidden;
+}
+
+.div-card-explorar::after {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: 70%;
+	background: linear-gradient(to top, #00000080, transparent);
+}
+
+.imagem-background-explorar {
+	position: absolute;
+	inset: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.conteudo-card-explorar {
+	display: flex;
+	min-height: 100%;
+	flex-direction: column;
+	padding-top: 60vh;
+	padding-top: 60dvh;
+	align-items: center;
+	position: relative;
+	z-index: 1;
+}
+
+.conteudo-card-explorar h2 {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	font-size: 3rem;
+	color: #FFFFFF;
+}
+
+.conteudo-card-explorar a {
+	text-decoration: none;
+	color: #FFFFFF;
+	border: 1px solid #FFFFFF80;
+	padding: 10px 80px;
+	border-radius: 100px;
+	background-color: #FFFFFF20;
+}
+
+.div-card-explorar .barra-tempo-explorar {
+	position: absolute;
+	top: 24px;
+	left: 4%;
+	right: 4%;
+	height: 3px;
+	border-radius: 50px;
+	background-color: #FFFFFF55;
+	overflow: hidden;
+	z-index: 2;
+	pointer-events: none;
+}
+
+.div-card-explorar .barra-tempo-explorar::after {
+	content: '';
+	display: block;
+	width: 100%;
+	height: 100%;
+	background-color: #FFFFFF;
+	transform: scaleX(0);
+	transform-origin: left;
+	animation: preencher-barra-explorar 10s linear forwards;
+}
+
+@keyframes preencher-barra-explorar {
+	to {
+		transform: scaleX(1);
+	}
+}

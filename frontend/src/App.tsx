@@ -3,6 +3,7 @@ import { Feed } from './pages/Feed'
 import { Acesso } from './pages/Acesso'
 import { Login } from './pages/Login'
 import { CriarConta } from './pages/CriarConta'
+import { Explorar } from './pages/Explorar'
 
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
 			<Route path='/acesso' element={<Acesso />} />
 			<Route path='/login' element={<Login />} />
 			<Route path='/criar-conta' element={<CriarConta />} />
+      <Route path='/explorar' element={<Explorar />} />
 		</Routes>
 	)
 }
