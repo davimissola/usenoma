@@ -1,0 +1,44 @@
+.pages-feed {
+	padding: 100px 0;
+	display: flex;
+	flex-direction: column;
+	gap: 30px;
+	align-items: center;
+	background-color: #080808;
+}
+
+.bloco-feed {
+	margin: 0;
+	width: 414px;
+	min-width: 0;
+	max-width: 100%;
+	color: #ffffff;
+	background-color: transparent;
+}
+
+.bloco-feed .imagem-feed {
+	display: block;
+	width: 100%;
+	max-width: 97%;
+	margin: 0 auto;
+	height: auto;
+	aspect-ratio: 414 / 545;
+	object-fit: cover;
+}
+
+.bloco-feed .lista-feed {
+	display: flex;
+	gap: 10px;
+	list-style: none;
+	overflow-x: auto;
+	scrollbar-width: none;
+}
+
+.bloco-feed .lista-feed::-webkit-scrollbar {
+	display: none;
+}
+
+.bloco-feed .lista-feed:focus-visible {
+	outline: 2px solid currentColor;
+	outline-offset: 2px;
+}

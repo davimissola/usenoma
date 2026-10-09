@@ -1,0 +1,45 @@
+.imagem-feed-produto {
+	width: 280px;
+	height: 366px;
+	object-fit: cover;
+}
+
+.feed-produtos .imagem-produto {
+	position: relative;
+	margin: 0;
+}
+
+.feed-produtos .legenda-feed-produtos {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	padding: 12px;
+}
+
+.feed-produtos .legenda-feed-produtos {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	width: 100%;
+}
+
+.feed-produtos .icones-feed-produtos {
+	display: flex;
+	gap: 8px;
+	flex-shrink: 0;
+}
+
+.feed-produtos .icones-feed-produtos img {
+	display: block;
+	width: 20px;
+	height: 20px;
+}
+
+.feed-produtos .logo-marca-produto {
+	display: block;
+	width: 40px;
+	height: 40px;
+	flex-shrink: 0;
+	border-radius: 50%;
+	object-fit: contain;
+}

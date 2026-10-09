@@ -1,0 +1,121 @@
+# Dependências e builds — React / Vite
+node_modules/
+dist/
+dist-ssr/
+build/
+.vite/
+*.tsbuildinfo
+.eslintcache
+.cache/
+.npm/
+.pnpm-store/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# Python / FastAPI — ambientes virtuais
+.venv/
+venv/
+ENV/
+
+# Python — bytecode, caches e empacotamento
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.pytype/
+.tox/
+.nox/
+*.egg-info/
+.eggs/
+*.egg
+pip-wheel-metadata/
+__pypackages__/
+
+# Testes e cobertura — frontend e backend
+coverage/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+nosetests.xml
+junit.xml
+playwright-report/
+test-results/
+.hypothesis/
+
+# Variáveis de ambiente — manter apenas modelos sem credenciais
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+!.env.*.example
+
+# Logs e processos locais
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.pid
+*.pid.lock
+
+# Dados locais do backend — não são código-fonte
+/backend/*.db
+/backend/*.db-journal
+/backend/*.db-wal
+/backend/*.db-shm
+/backend/*.sqlite
+/backend/*.sqlite3
+/backend/*.sqlite3-journal
+/backend/*.sqlite3-wal
+/backend/*.sqlite3-shm
+/backend/uploads/
+/backend/media/
+/backend/.local/
+
+# Credenciais locais de infraestrutura
+.aws/
+
+# Arquivos temporários e backups
+*.tmp
+*.temp
+*.bak
+*.orig
+*.rej
+*.swp
+*.swo
+*~
+
+# Editores — preservar configurações compartilháveis do VS Code
+.idea/
+**/.vscode/*
+!**/.vscode/extensions.json
+!**/.vscode/settings.json
+!**/.vscode/tasks.json
+!**/.vscode/launch.json
+*.code-workspace
+*.suo
+*.ntvs*
+*.njsproj
+
+# Sistema operacional
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Versionar lockfiles, migrations Alembic, Dockerfiles, código e assets.

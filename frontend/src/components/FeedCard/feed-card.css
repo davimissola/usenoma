@@ -1,0 +1,39 @@
+.legenda-feed-card {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	width: 100%;
+	padding: 0 10px;
+}
+
+.imagem-feed-card {
+    border-radius: var(--feed-radius-card);
+}
+
+.legenda-feed-card .texto-feed-card {
+	min-width: 0;
+	font-weight: 50;
+    display: flex;
+    align-items: center;
+    padding-top: 2px;
+    gap: 5px;
+}
+
+.legenda-feed-card .texto-feed-card img {
+    width: 23px;
+    height: 23px;
+}
+
+.legenda-feed-card .icones-feed-card {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-shrink: 0;
+}
+
+.legenda-feed-card .icones-feed-card img {
+	display: block;
+	width: 20px;
+	height: 20px;
+}

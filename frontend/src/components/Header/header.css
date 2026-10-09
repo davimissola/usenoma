@@ -1,0 +1,28 @@
+.header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	height: 70px;
+	background-color: transparent;
+	position: fixed;
+	z-index: 1;
+	top: 0;
+	width: 100%;
+	padding: 0 4vw;
+}
+
+.botao-menu {
+	background-color: transparent;
+	border: none;
+	cursor: pointer;
+}
+
+.header .coluna-header {
+	display: flex;
+	gap: 15px;
+}
+
+.header .coluna-header img {
+	width: 28px;
+	height: 28px;
+}
