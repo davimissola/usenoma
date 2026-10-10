@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import caretLeft from '../../assets/svg/icons/caret-left-thin.svg'
+import caretRight from '../../assets/svg/icons/caret-right-thin.svg'
 import '../conta.css'
 
 
@@ -22,8 +23,8 @@ export function CriarConta() {
 					</div>
 
 					<div className='campo-conta'>
-						<label htmlFor='usuario-criar-conta'>Email</label>
-						<input id='usuario-criar-conta' name='username' type="text" placeholder="Seu email" autoComplete="username" autoCapitalize="none" spellCheck={false} />
+						<label htmlFor='email-criar-conta'>Email</label>
+						<input id='email-criar-conta' name='email' type="email" placeholder="Seu email" autoComplete="email" autoCapitalize="none" spellCheck={false} />
 					</div>
 
 					<div className='campo-conta'>
@@ -32,11 +33,14 @@ export function CriarConta() {
 					</div>
 
 					<div className='campo-conta'>
-						<label htmlFor='senha-criar-conta'>Confirmar senha</label>
-						<input id='senha-criar-conta' name='password' type="password" placeholder="Confirme sua senha" autoComplete="new-password" />
+						<label htmlFor='confirmar-senha-criar-conta'>Confirmar senha</label>
+						<input id='confirmar-senha-criar-conta' name='confirmPassword' type="password" placeholder="Confirme sua senha" autoComplete="new-password" />
 					</div>
 
-					<button className='botao-conta' type="submit">Próximo --</button>
+					<button className='botao-conta' type="submit">
+						Próximo
+						<img src={caretRight} alt="Próximo" />
+					</button>
 				</form>
 			</div>
 		</main>

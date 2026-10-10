@@ -1,9 +1,36 @@
 # SIGA 100% AS SEGUINTES REGRAS
+- eu e você vamos ser tratados como DOIS DESENVOLVEDORES, não existe você fazer algo sem falar comigo antes, assim como tudo que eu fizer vou falar com você. Sempre que eu pedir algo, faça perguntas, converse e depois comece o código
 - idente perfeitamente, com TAB os arquivos, deixando-os bonito de se ver e organizado, facilitando a organização
-- quando um atributo HTML tiver mais de um 'parâmetro', tipo classe, id, onClick, etc, deixe todos na mesma linha
-- faça, ao máximo, da maneira mais simples possível. Evite complicar coisas desnecessariamente
+- quando um atributo HTML, função python, etc tiver mais de um 'parâmetro'/dependencias deixe todos na mesma linha, não quero que você pule e deixe um em cada linha
+- foque em simplicidade. Evite complicar coisas desnecessariamente
 - foque em um visual clean, moderno, minimalista em todos os CSS que você fizer
 - interprete o MEU JEITO de escrever código olhando os outros arquivos que eu fiz. Reproduza os códigos que você fizer da mesma maneira
 - antes de criar o VISUAL de qualquer coisa, olhe, interprete, pegue referências de como está o MEU DESIGN atual e procure visuais parecidos na internet
-- faça perguntas, se necessário e restar alguma dúvida, antes de criar qualquer coisa
-- foque em simplicidade ao máximo. O código deve ser SIMPLES de entender, a medida do possível obviamente
+- ENTENDA: A NOMA é uma plataforma de moda que funciona como um marketplace focado em marcas, descoberta e estilo. Não quero que ela seja tratada como uma Shopee genérica. A ideia é reunir lojas de roupa, produtos, coleções, estilos, posts de influenciadores e outros tipos de conteúdo em uma experiência mais editorial e social.
+- No futuro, o feed pode reunir vários tipos de conteúdo, como:
+    -> cards editoriais
+    -> coleções de marcas
+    -> coleções de produtos
+    -> posts de influenciadores
+    -> lançamentos
+    -> reels
+    -> posts da comunidade
+    -> notícias
+Por isso, o banco precisa ser pensado para crescer sem virar uma tabela gigante cheia de campos opcionais.
+- Quero usar PostgreSQL e quero que toda alteração estrutural seja feita com migrations. Nada de alterar banco manualmente de forma solta.
+- usar migrations desde o início
+- criar relacionamentos claros com foreign keys
+- usar constraints quando fizer sentido
+- evitar dados duplicados sem necessidade
+- criar índices em campos realmente usados em busca, filtros, relacionamentos e ordenação
+- pensar em paginação desde cedo
+- não criar otimizações prematuras
+- não criar arquitetura excessivamente complexa
+- manter integridade dos dados no banco, não apenas no backend
+- separar bem os domínios: users, stores, products, collections, feed, follows, favorites, orders, etc.
+- imagens não devem ser salvas no PostgreSQL; o banco deve guardar apenas referências/metadata do storage
+- considerar que produtos podem ter várias imagens, tamanhos, cores e estoque por variação
+- considerar que lojas terão identidade própria, coleções e vários conteúdos
+- considerar que o feed precisará ordenar conteúdo por relevância, performance, recência, patrocinado, etc.
+- A arquitetura inicial deve ser um monolito modular, não microserviços.
+- Quero um banco e um backend simples de entender, mas preparado para crescer. Evite abstrações desnecessárias e tabelas genéricas demais.

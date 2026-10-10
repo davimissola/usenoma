@@ -14,7 +14,7 @@ function App() {
 			<Route path='/acesso' element={<Acesso />} />
 			<Route path='/login' element={<Login />} />
 			<Route path='/criar-conta' element={<CriarConta />} />
-      <Route path='/explorar' element={<Explorar />} />
+      		<Route path='/explorar' element={<Explorar />} />
 		</Routes>
 	)
 }
