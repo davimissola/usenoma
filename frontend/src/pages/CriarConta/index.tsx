@@ -1,6 +1,7 @@
 import { useState, type SubmitEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { apiUrl } from '../../config'
+import { auth, definirSessao } from '../../stores/auth'
 import type { AuthErrorResponse, AuthTokenResponse } from '../../types/auth'
 import caretLeft from '../../assets/svg/icons/caret-left-thin.svg'
 import caretRight from '../../assets/svg/icons/caret-right-thin.svg'
@@ -8,9 +9,9 @@ import '../conta.css'
 
 
 export function CriarConta() {
-	const [accessToken, setAccessToken] = useState('')
 	const [erro, setErro] = useState('')
 	const [enviando, setEnviando] = useState(false)
+	const navigate = useNavigate()
 
 	async function criarConta(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault()
@@ -24,7 +25,6 @@ export function CriarConta() {
 		const confirmPassword = String(formData.get('confirmPassword') ?? '')
 
 		setErro('')
-		setAccessToken('')
 
 		if (password !== confirmPassword) {
 			setErro('As senhas não coincidem.')
@@ -58,12 +58,17 @@ export function CriarConta() {
 			}
 
 			const data: AuthTokenResponse = await response.json()
-			setAccessToken(data.access_token)
+			definirSessao(data.access_token)
+			navigate('/', { replace: true })
 		} catch {
 			setErro('Não foi possível criar a conta. Tente novamente.')
 		} finally {
 			setEnviando(false)
 		}
+	}
+
+	if (auth.accessToken) {
+		return <Navigate to='/' replace />
 	}
 
 	return (
@@ -103,7 +108,6 @@ export function CriarConta() {
 					</button>
 
 					{erro && <p className='mensagem-conta' role="alert">{erro}</p>}
-					{accessToken && <p className='mensagem-conta' role="status">Conta criada com sucesso.</p>}
 				</form>
 			</div>
 		</main>

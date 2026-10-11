@@ -1,7 +1,7 @@
 import { useState, type SubmitEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { apiUrl } from '../../config'
-import { auth } from '../../stores/auth'
+import { auth, definirSessao } from '../../stores/auth'
 import type { AuthErrorResponse, AuthTokenResponse } from '../../types/auth'
 import caretLeft from '../../assets/svg/icons/caret-left-thin.svg'
 import '../conta.css'
@@ -46,13 +46,17 @@ export function Login() {
 			}
 
 			const data: AuthTokenResponse = await response.json()
-			auth.accessToken = data.access_token
+			definirSessao(data.access_token)
 			navigate('/', { replace: true })
 		} catch {
 			setErro('Não foi possível entrar na conta. Tente novamente.')
 		} finally {
 			setEnviando(false)
 		}
+	}
+
+	if (auth.accessToken) {
+		return <Navigate to='/' replace />
 	}
 
 	return (

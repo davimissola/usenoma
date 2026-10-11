@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
-import { apiUrl } from '../../config'
 import { UsuarioInicio } from '../../components/UsuarioInicio'
-import { auth } from '../../stores/auth'
+import { auth, requisicaoAutenticada } from '../../stores/auth'
 import type { UserResponse } from '../../types/users'
 import caretLeft from '../../assets/svg/icons/caret-left-thin.svg'
 import dotsThree from '../../assets/svg/icons/dots-three-thin.svg'
@@ -23,20 +22,15 @@ export function Usuario() {
 
 		async function buscarUsuario() {
 			try {
-				// O backend identifica o usuário pelo access token enviado no Authorization.
-				const response = await fetch(`${apiUrl}/users/me`, {
-					headers: {
-						Authorization: `Bearer ${auth.accessToken}`
-					}
-				})
+				// Envia o token e, se necessário, faz um refresh e repete a consulta uma vez.
+				const response = await requisicaoAutenticada('/users/me')
 
 				if (!ativo) {
 					return
 				}
 
 				if (response.status === 401) {
-					// O Acesso tenta recuperar a sessão quando o token é rejeitado.
-					auth.accessToken = ''
+					// Só chega aqui se a recuperação falhou ou o novo token também foi rejeitado.
 					navigate('/acesso', { replace: true })
 					return
 				}
@@ -66,7 +60,7 @@ export function Usuario() {
 		}
 	}, [navigate])
 
-	// Sem token na memória, o Acesso tenta recuperar a sessão pelo cookie.
+	// O App já terminou a verificação inicial antes de abrir esta página.
 	if (!auth.accessToken) {
 		return <Navigate to='/acesso' replace />
 	}

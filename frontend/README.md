@@ -12,7 +12,18 @@ Instale as dependências com `npm ci`, copie `.env.example` para `.env` e inicie
 
 - `npm run lint`: verifica o código com ESLint.
 - `npm run build`: verifica o TypeScript e gera a versão de produção.
+- `npm test`: testa sessão, formulários e navegação com API simulada, sem iniciar servidores.
 - `npm run preview`: visualiza a versão de produção localmente.
+
+## Autenticação
+
+O `App` aguarda `recuperarSessao()` antes de abrir as páginas. `sessaoVerificada` indica que essa consulta terminou, inclusive quando não há sessão; `accessToken` indica que o usuário está autenticado. Cadastro e login usam `definirSessao()` e abrem o Feed.
+
+Nas chamadas protegidas, use `requisicaoAutenticada('/users/me')`. Ela envia o Bearer, tenta um refresh após `401` e repete a chamada uma única vez. Se a recuperação falhar ou a repetição retornar `401`, limpa o token. Uma falha de conexão na requisição normal não apaga a sessão. `Acesso` não inicia outra recuperação, evitando ciclos de redirecionamento.
+
+As chamadas da mesma aba compartilham uma renovação. Abas diferentes usam Web Locks para serializar o acesso ao cookie, quando disponível em HTTPS ou localhost. Nenhum token é salvo em localStorage/sessionStorage; o refresh permanece HttpOnly. Em navegadores sem Web Locks, a coordenação fica restrita à própria aba.
+
+`encerrarSessao()` chama o logout no backend e limpa o token após a confirmação. Ainda não há botão: quando ele for criado, aguarde essa função e navegue para `/acesso`; se ela lançar erro, mostre a mensagem e permita tentar novamente.
 
 ## Organização de imagens e SVGs
 
