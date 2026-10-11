@@ -37,7 +37,9 @@ export function CriarConta() {
 			const response = await fetch(`${apiUrl}/auth/register`, {
 				method: 'POST',
 				credentials: 'include',
-				headers: { 'Content-Type': 'application/json' },
+				headers: { 
+					'Content-Type': 'application/json' 
+				},
 				body: JSON.stringify({
 					username: formData.get('username'),
 					email: formData.get('email'),

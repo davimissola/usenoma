@@ -29,7 +29,9 @@ export function Login() {
 			const response = await fetch(`${apiUrl}/auth/login`, {
 				method: 'POST',
 				credentials: 'include',
-				headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+				headers: { 
+					'Content-Type': 'application/x-www-form-urlencoded' 
+				},
 				body
 			})
 
@@ -47,7 +49,7 @@ export function Login() {
 
 			const data: AuthTokenResponse = await response.json()
 			definirSessao(data.access_token)
-			navigate('/', { replace: true })
+			navigate('/usuario', { replace: true })
 		} catch {
 			setErro('Não foi possível entrar na conta. Tente novamente.')
 		} finally {

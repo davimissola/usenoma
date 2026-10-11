@@ -27,7 +27,7 @@ export function UsuarioInicio({ usuario }: UsuarioInicioProps) {
 			<div className='card-desconto-usuario'>
 				<div className='texto-desconto-usuario'>
 					<h3>10% em qualquer loja</h3>
-					<p>Faltam 5 compras no mês<br />para resgatar</p>
+					<p>Faltam 5 compras no mês<br />para resgatar cupom</p>
 				</div>
 
 				<span className='numero-desconto-usuario'>5</span>
