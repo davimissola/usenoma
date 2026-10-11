@@ -5,11 +5,18 @@ from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.modules.auth.routes import router as auth_router
+from app.modules.stores.routes import router as stores_router
 from app.modules.users.routes import router as users_router
 
 
 app = FastAPI(title='Noma')
-app.add_middleware(CORSMiddleware, allow_origins=[settings.frontend_url], allow_credentials=True, allow_methods=['GET', 'POST'], allow_headers=['Authorization', 'Content-Type'])
+app.add_middleware(
+	CORSMiddleware, 
+	allow_origins=[settings.frontend_url], 
+	allow_credentials=True, 
+	allow_methods=['GET', 'POST', 'PATCH', 'DELETE'], 
+	allow_headers=['Authorization', 'Content-Type']
+)
 
 
 @app.exception_handler(RequestValidationError)
@@ -22,3 +29,4 @@ async def validation_error_handler(request: Request, error: RequestValidationErr
 
 app.include_router(auth_router)
 app.include_router(users_router)
+app.include_router(stores_router)

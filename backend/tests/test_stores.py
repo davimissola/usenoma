@@ -1,11 +1,16 @@
+from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
+from fastapi import HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 
 from app.core.database import SessionLocal
+from app.modules.stores.create_store import main
 from app.modules.stores.models import Store, StoreMember
+from app.modules.stores.schemas import StoreCreate
+from app.modules.stores.service import create_store
 from app.modules.users.models import User
 
 
@@ -181,3 +186,84 @@ def test_user_delete_requires_removing_memberships_first(store_data):
 
 		assert db.get(User, user_id) is None
 		assert db.get(Store, store_id) is not None
+
+
+def test_administrative_creation_saves_store_and_existing_owner_together(store_data):
+	_, _, user_id, _ = store_data
+
+	with SessionLocal() as db:
+		store = create_store(db, StoreCreate(name=' Nova loja ', slug='nova-loja', description='Descrição da loja.'), ' DAVI ')
+
+		assert store.name == 'Nova loja'
+		assert store.description == 'Descrição da loja.'
+		assert db.get(StoreMember, (store.id, user_id)).role == 'owner'
+		assert db.scalar(select(func.count()).select_from(User)) == 2
+
+
+def test_administrative_creation_rejects_unknown_owner_without_creating_store(store_data):
+	with SessionLocal() as db:
+		with pytest.raises(HTTPException) as error:
+			create_store(db, StoreCreate(name='Nova loja', slug='nova-loja'), 'inexistente')
+
+		assert error.value.status_code == 404
+		assert db.scalar(select(func.count()).select_from(Store)) == 2
+		assert db.scalar(select(func.count()).select_from(StoreMember)) == 0
+
+
+def test_administrative_creation_rejects_duplicate_slug_without_creating_membership(store_data):
+	with SessionLocal() as db:
+		with pytest.raises(HTTPException) as error:
+			create_store(db, StoreCreate(name='Outra loja', slug='saint'), 'davi')
+
+		assert error.value.status_code == 409
+		assert db.scalar(select(func.count()).select_from(Store)) == 2
+		assert db.scalar(select(func.count()).select_from(StoreMember)) == 0
+
+
+def test_administrative_creation_rolls_back_store_when_membership_fails(store_data):
+	with SessionLocal() as db:
+		original_add = db.add
+
+		def add_without_user(member):
+			if isinstance(member, StoreMember):
+				member.user_id = uuid4()
+
+			original_add(member)
+
+		# Simula a falha do vínculo depois do flush real da loja, sem simular o PostgreSQL.
+		with patch.object(db, 'add', side_effect=add_without_user):
+			with pytest.raises(HTTPException) as error:
+				create_store(db, StoreCreate(name='Nova loja', slug='nova-loja'), 'davi')
+
+		assert error.value.status_code == 404
+		assert db.scalar(select(func.count()).select_from(Store)) == 2
+		assert db.scalar(select(func.count()).select_from(StoreMember)) == 0
+
+
+def test_create_store_command_uses_the_provided_arguments(store_data, monkeypatch, capsys):
+	_, _, user_id, _ = store_data
+	monkeypatch.setattr('sys.argv', ['create_store', '--name', 'Nova loja', '--slug', 'nova-loja', '--owner-username', 'davi', '--description', 'Uma loja real.'])
+	main()
+
+	assert 'nova-loja' in capsys.readouterr().out
+
+	with SessionLocal() as db:
+		store = db.scalar(select(Store).where(Store.slug == 'nova-loja'))
+
+		assert store.description == 'Uma loja real.'
+		assert db.get(StoreMember, (store.id, user_id)).role == 'owner'
+
+
+@pytest.mark.parametrize('slug, username', [('Saint', 'davi'), ('nova-loja', 'inexistente'), ('saint', 'davi')])
+def test_create_store_command_reports_invalid_input_without_creating_records(store_data, monkeypatch, capsys, slug, username):
+	monkeypatch.setattr('sys.argv', ['create_store', '--name', 'Nova loja', '--slug', slug, '--owner-username', username])
+
+	with pytest.raises(SystemExit) as error:
+		main()
+
+	assert error.value.code == 2
+	assert 'error:' in capsys.readouterr().err
+
+	with SessionLocal() as db:
+		assert db.scalar(select(func.count()).select_from(Store)) == 2
+		assert db.scalar(select(func.count()).select_from(StoreMember)) == 0

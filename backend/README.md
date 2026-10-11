@@ -91,7 +91,7 @@ O logout revoga somente a sessão atual de refresh. Um access token já emitido 
 
 ## Testes
 
-Use um PostgreSQL local exclusivo de testes, com nome terminado em `_test`. A suíte rejeita hosts remotos, aplica as migrations e limpa as duas tabelas antes de cada teste.
+Use um PostgreSQL local exclusivo de testes, com nome terminado em `_test`. A suíte rejeita hosts remotos, aplica as migrations e limpa as tabelas da aplicação antes de cada teste.
 
 Com as ferramentas do PostgreSQL no PATH, prepare uma instância isolada uma única vez, dentro de `backend`:
 
@@ -112,3 +112,13 @@ pg_ctl -D .local/postgres-test -m fast -w stop
 ```
 
 A suíte verifica cadastro, unicidade, credenciais, JWT inválido ou expirado, cookies, expiração e rotação do refresh, concorrência, logout, isolamento entre sessões, validação sem exposição de senhas e correspondência entre models e migrations.
+
+## Criar uma loja administrativamente
+
+Dentro de `backend`, com o `.env` configurado e as migrations aplicadas:
+
+```powershell
+.\venv\Scripts\python.exe -m app.modules.stores.create_store --name "Saint" --slug "saint" --owner-username "davi" --description "Loja de streetwear."
+```
+
+`--description` é opcional. O usuário responsável precisa existir. A loja e seu primeiro owner são salvos juntos; qualquer falha desfaz a criação. Este comando deve ser executado pela equipe NOMA com acesso ao ambiente do backend.
