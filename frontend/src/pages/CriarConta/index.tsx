@@ -34,7 +34,7 @@ export function CriarConta() {
 
 		try {
 			const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
-			const response = await fetch(`${apiUrl.replace(/\/+$/, '')}/auth/register`, { 
+			const response = await fetch(`${apiUrl}/auth/register`, {
 				method: 'POST',
 				credentials: 'include',
 				

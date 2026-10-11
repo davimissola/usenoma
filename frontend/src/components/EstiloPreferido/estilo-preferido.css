@@ -1,0 +1,63 @@
+.card-estilo-preferido {
+	position: relative;
+	z-index: 0;
+	width: 100%;
+	max-width: 414px;
+	min-width: 0;
+	aspect-ratio: 3 / 4;
+	margin: 0 auto;
+	border-radius: 40px;
+	overflow: hidden;
+}
+
+.imagem-estilo-preferido {
+	position: absolute;
+	inset: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+/* O gradiente cobre os 50% inferiores da imagem. */
+.card-estilo-preferido::after {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: 60%;
+	background: linear-gradient(to top, #000000, transparent);
+	pointer-events: none;
+}
+
+.legenda-estilo-preferido {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	z-index: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 40%;
+	padding: 0 20px;
+	text-align: center;
+}
+
+.legenda-estilo-preferido h2 {
+	display: flex;
+	color: #fff;
+	font-size: clamp(1.25rem, 7vw, 2rem);
+	font-weight: 500;
+	letter-spacing: -0.05em;
+	line-height: 1;
+	overflow-wrap: anywhere;
+}
+
+.legenda-estilo-preferido p {
+	color: #d1cece;
+	font-size: clamp(0.6875rem, 3.5vw, 0.875rem);
+	line-height: 1.1;
+}

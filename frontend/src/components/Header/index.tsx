@@ -20,6 +20,7 @@ export function Header() {
 			</div>
 
 			<div className='coluna-header'>
+				{/* O Acesso verifica a sessão e escolhe qual página mostrar. */}
 				<Link to='/acesso'>
 					<img src={userSvg} alt="User" />
 				</Link>

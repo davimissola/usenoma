@@ -1,0 +1,37 @@
+.pages-usuario {
+	position: relative;
+	min-height: 100vh;
+	min-height: 100dvh;
+	padding: 32vh 4vw 40px;
+	padding-top: 32dvh;
+	background-color: #080808;
+	color: #ffffff;
+}
+
+.voltar-usuario {
+	position: absolute;
+	top: 20px;
+	left: 4vw;
+}
+
+.ajustes-usuario {
+	position: absolute;
+	top: 20px;
+	right: 4vw;
+	background-color: transparent;
+	border: none;
+}
+
+.voltar-usuario img,
+.ajustes-usuario img {
+	display: block;
+	width: 28px;
+	height: 28px;
+}
+
+.pages-usuario > p {
+	width: 414px;
+	max-width: 100%;
+	margin: 0 auto;
+	text-align: center;
+}

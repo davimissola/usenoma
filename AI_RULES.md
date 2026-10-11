@@ -34,3 +34,4 @@ Por isso, o banco precisa ser pensado para crescer sem virar uma tabela gigante 
 - considerar que o feed precisará ordenar conteúdo por relevância, performance, recência, patrocinado, etc.
 - A arquitetura inicial deve ser um monolito modular, não microserviços.
 - Quero um banco e um backend simples de entender, mas preparado para crescer. Evite abstrações desnecessárias e tabelas genéricas demais.
+- A função fetch do javascript deve ser identada corretamente, não deixando tudo na mesma linha, sendo uma excessão pra outra regra
