@@ -27,7 +27,9 @@ def verify_request_origin(request: Request) -> None:
 
 	if not origin:
 		referer = urlsplit(request.headers.get('referer', ''))
-		origin = f'{referer.scheme}://{referer.netloc}' if referer.scheme and referer.netloc else None
+
+		if referer.scheme and referer.netloc:
+			origin = f'{referer.scheme}://{referer.netloc}'
 
 	if origin not in {settings.frontend_url, api_origin}:
 		raise HTTPException(status_code=403, detail='Origem da requisição não permitida.')

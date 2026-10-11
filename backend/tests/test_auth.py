@@ -113,7 +113,11 @@ def test_protected_route_rejects_invalid_jwt(client, case):
 	elif case == 'invalid_sub':
 		payload['sub'] = 'id-invalido'
 
-	token = 'token-invalido' if case == 'malformed' else jwt.encode(payload, secret_key, algorithm=algorithm)
+	if case == 'malformed':
+		token = 'token-invalido'
+	else:
+		token = jwt.encode(payload, secret_key, algorithm=algorithm)
+
 	response = client.get('/users/me', headers={'Authorization': f'Bearer {token}'})
 
 	assert response.status_code == 401

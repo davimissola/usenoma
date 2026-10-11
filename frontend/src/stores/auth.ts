@@ -1,3 +1,4 @@
+import { apiUrl } from '../config'
 import type { AuthTokenResponse } from '../types/auth'
 
 
@@ -25,7 +26,6 @@ export async function recuperarSessao(): Promise<void> {
 
 async function renovarSessao(): Promise<void> {
 	try {
-		const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 		const response = await fetch(`${apiUrl}/auth/refresh`, {
 			method: 'POST',
 			credentials: 'include'

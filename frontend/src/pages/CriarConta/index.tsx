@@ -1,5 +1,6 @@
 import { useState, type SubmitEvent } from 'react'
 import { Link } from 'react-router-dom'
+import { apiUrl } from '../../config'
 import type { AuthErrorResponse, AuthTokenResponse } from '../../types/auth'
 import caretLeft from '../../assets/svg/icons/caret-left-thin.svg'
 import caretRight from '../../assets/svg/icons/caret-right-thin.svg'
@@ -33,21 +34,15 @@ export function CriarConta() {
 		setEnviando(true)
 
 		try {
-			const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 			const response = await fetch(`${apiUrl}/auth/register`, {
 				method: 'POST',
 				credentials: 'include',
-				
-				headers: { 
-					'Content-Type': 
-					'application/json' 
-				}, 
-
-				body: JSON.stringify({ 
-					username: formData.get('username'), 
-					email: formData.get('email'), 
-					password 
-				}) 
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					username: formData.get('username'),
+					email: formData.get('email'),
+					password
+				})
 			})
 
 			if (!response.ok) {

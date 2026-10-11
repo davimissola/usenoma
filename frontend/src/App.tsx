@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import { Feed } from './pages/Feed'
 import { Acesso } from './pages/Acesso'
 import { Login } from './pages/Login'
@@ -17,6 +17,7 @@ function App() {
 			<Route path='/login' element={<Login />} />
 			<Route path='/criar-conta' element={<CriarConta />} />
 			<Route path='/explorar' element={<Explorar />} />
+			<Route path='*' element={<Navigate to='/' replace />} />
 		</Routes>
 	)
 }

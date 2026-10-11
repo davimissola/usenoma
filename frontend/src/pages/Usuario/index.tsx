@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { apiUrl } from '../../config'
 import { UsuarioInicio } from '../../components/UsuarioInicio'
 import { auth } from '../../stores/auth'
 import type { UserResponse } from '../../types/users'
@@ -22,7 +23,6 @@ export function Usuario() {
 
 		async function buscarUsuario() {
 			try {
-				const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 				// O backend identifica o usuário pelo access token enviado no Authorization.
 				const response = await fetch(`${apiUrl}/users/me`, {
 					headers: {

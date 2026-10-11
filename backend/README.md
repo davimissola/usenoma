@@ -4,7 +4,7 @@ Monolito modular com FastAPI, SQLAlchemy, Psycopg e PostgreSQL no Supabase. Alte
 
 ## Organização
 
-- `app/main.py`: registra os módulos e configura CORS.
+- `app/main.py`: registra os módulos, configura CORS e remove os dados enviados das respostas de validação `422`.
 - `app/core/config.py`: carrega o `.env` e valida as configurações.
 - `app/core/database.py`: conexão, sessão do banco e `DbSession`, compartilhadas pelos módulos. Nas rotas, use `db: DbSession`; a injeção já está definida no alias com `Annotated`.
 - `app/modules/auth/`: `models.py` representa as sessões; `schemas.py` define os contratos; `security.py` cuida de hashes e tokens; `service.py` contém os fluxos; `dependencies.py` valida JWT e origem e fornece `CurrentUserId`; `routes.py` expõe cadastro, login, refresh e logout.
@@ -26,7 +26,7 @@ Copy-Item .env.example .env
 .\venv\Scripts\python.exe -c "import secrets; print(secrets.token_urlsafe(48))"
 ```
 
-Coloque a chave gerada em `SECRET_KEY` no `.env`. Preencha `DATABASE_URL` com a URL PostgreSQL obtida em **Connect** no Supabase. URLs `postgresql://` também são aceitas; o backend usa o driver Psycopg.
+Coloque a chave gerada em `SECRET_KEY` no `.env`. Preencha `DATABASE_URL` com a URL PostgreSQL obtida em **Connect** no Supabase e mantenha `sslmode=require`. URLs `postgresql://` também são aceitas; o backend usa o driver Psycopg.
 
 Se a conexão direta por IPv6 não estiver acessível, consulte o pooler em modo **session**. [Conexões do Supabase](https://supabase.com/docs/guides/database/connecting-to-postgres).
 
@@ -93,10 +93,22 @@ O logout revoga somente a sessão atual de refresh. Um access token já emitido 
 
 Use um PostgreSQL local exclusivo de testes, com nome terminado em `_test`. A suíte rejeita hosts remotos, aplica as migrations e limpa as duas tabelas antes de cada teste.
 
+Com as ferramentas do PostgreSQL no PATH, prepare uma instância isolada uma única vez, dentro de `backend`:
+
 ```powershell
-.\venv\Scripts\python.exe -m pip install -r requirements-dev.txt
-$env:TEST_DATABASE_URL = 'postgresql+psycopg://postgres:SENHA@127.0.0.1:5432/noma_auth_test'
-.\venv\Scripts\python.exe -m pytest -q
+New-Item -ItemType Directory -Path .local -Force | Out-Null
+initdb -D .local/postgres-test -U postgres --encoding=UTF8 --locale=C --auth=trust
+pg_ctl -D .local/postgres-test -l .local/postgres-test.log -o "-p 55432 -h 127.0.0.1" -w start
+createdb -h 127.0.0.1 -p 55432 -U postgres noma_auth_test
 ```
 
-A suíte verifica cadastro, unicidade, credenciais, JWT inválido ou expirado, cookies, expiração e rotação do refresh, concorrência, logout e isolamento entre sessões.
+Essa instância aceita conexões apenas em `127.0.0.1` e usa autenticação sem senha exclusivamente para os testes locais. `.local` não é versionado. Nas próximas execuções, use somente o comando `pg_ctl ... start`, sem repetir `initdb` ou `createdb`.
+
+```powershell
+.\venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+$env:TEST_DATABASE_URL = 'postgresql+psycopg://postgres@127.0.0.1:55432/noma_auth_test'
+.\venv\Scripts\python.exe -m pytest -q
+pg_ctl -D .local/postgres-test -m fast -w stop
+```
+
+A suíte verifica cadastro, unicidade, credenciais, JWT inválido ou expirado, cookies, expiração e rotação do refresh, concorrência, logout, isolamento entre sessões, validação sem exposição de senhas e correspondência entre models e migrations.

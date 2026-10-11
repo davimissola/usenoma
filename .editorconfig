@@ -1,4 +1,6 @@
-[*.{ts,tsx,css}]
+root = true
+
+[*.{py,ts,tsx,js,jsx,css,json}]
 charset = utf-8
 indent_style = tab
 indent_size = 4

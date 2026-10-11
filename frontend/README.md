@@ -4,7 +4,9 @@ React, TypeScript e Vite.
 
 ## Desenvolvimento
 
-Instale as dependências com `npm install` e inicie com `npm run dev`.
+Instale as dependências com `npm ci`, copie `.env.example` para `.env` e inicie com `npm run dev`.
+
+`VITE_API_URL` é a URL da API, sem barra no final, usada em `src/config.ts`. Variáveis `VITE_` são públicas: não coloque senhas ou tokens nelas. No backend, `FRONTEND_URL` precisa corresponder à origem deste frontend. Reinicie o Vite depois de alterar o `.env`.
 
 ## Validação
 
@@ -98,7 +100,7 @@ Referência: [documentação oficial de assets do Vite](https://vite.dev/guide/a
 ## Componentes do feed
 
 Cada componente tem sua pasta em `src/components`, com `index.tsx` e CSS próprio.
-O arquivo `src/components/feed.css` concentra somente estilos compartilhados do feed.
+O arquivo `src/pages/Feed/feed.css` concentra os estilos compartilhados do feed.
 As props ficam em `src/types/feed.ts`, agrupadas por domínio. Novos domínios podem
 ter seus próprios arquivos em `src/types`, sem acumular todas as props em um arquivo genérico.
 
@@ -109,25 +111,25 @@ ter seus próprios arquivos em `src/types`, sem acumular todas as props em um ar
 | `FeedInfluenciador` | `image: string`, `influencerName: string` | `imageAlt: string` |
 | `FeedMarcas` | `brands: readonly string[]` | — |
 
-Exemplo em uma página dentro de `src/pages`, usando URLs ou imports reais nos valores:
+Exemplo em `src/pages/Feed/index.tsx`, usando URLs ou imports reais nos valores:
 
 ```tsx
-import { FeedCard } from '../components/FeedCard'
-import { FeedProdutos } from '../components/FeedProdutos'
-import { FeedInfluenciador } from '../components/FeedInfluenciador'
-import { FeedMarcas } from '../components/FeedMarcas'
+import { FeedCard } from '../../components/FeedCard'
+import { FeedProdutos } from '../../components/FeedProdutos'
+import { FeedInfluenciador } from '../../components/FeedInfluenciador'
+import { FeedMarcas } from '../../components/FeedMarcas'
 
 // Dentro do JSX da página:
 <FeedCard image={campaignUrl} title="Streetwear na NOMA" />
 <FeedProdutos products={[{ productImage: productUrl, brandLogo: brandLogoUrl }, { productImage: anotherProductUrl, brandLogo: anotherBrandLogoUrl }]} />
 <FeedInfluenciador image={portraitUrl} influencerName="davimissola" />
-<FeedMarcas brands={['SAINT', 'ADORA']} />
+<FeedMarcas brands={[brandLogoUrl, anotherBrandLogoUrl]} />
 ```
 
 Os valores de imagem acima são exemplos de variáveis, não assets já incluídos.
-Os componentes não foram adicionados ao `App.tsx`, pois ainda não há conteúdo real
-para compor o feed. Esta versão contém apenas apresentação básica, sem fontes novas,
-logos fictícios, ações de curtir/salvar ou integração com API.
+Os componentes já aparecem na página Feed, em `/`, com imagens locais de teste.
+Curtir, salvar e os conteúdos do feed ainda não têm integração com a API.
+URLs sem página implementada redirecionam para `/`.
 
 `imageAlt` permite descrever o conteúdo das fotos. A lista de produtos usa uma descrição
 básica por posição; quando receber objetos da API, poderá ter descrição e ID por produto.
