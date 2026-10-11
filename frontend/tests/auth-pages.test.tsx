@@ -109,7 +109,7 @@ it('manda visitantes de Usuario para Acesso após concluir a verificação', asy
 })
 
 
-it.each([['/acesso', '/usuario'], ['/login', '/'], ['/criar-conta', '/']])('recupera a sessão em %s e abre %s sem mostrar formulários', async (path, destination) => {
+it.each([['/acesso', '/usuario'], ['/login', '/'], ['/criar-conta', '/explorar']])('recupera a sessão em %s e abre %s sem mostrar formulários', async (path, destination) => {
 	fetchMock.mockImplementation(async input => {
 		if (String(input).endsWith('/auth/refresh')) {
 			return Response.json({ access_token: 'token-recuperado', token_type: 'bearer' })
@@ -125,7 +125,7 @@ it.each([['/acesso', '/usuario'], ['/login', '/'], ['/criar-conta', '/']])('recu
 })
 
 
-it.each(['/login', '/criar-conta'])('autentica em %s, abre o Feed e permite abrir o perfil pelo Header', async path => {
+it.each([['/login', '/'], ['/criar-conta', '/explorar']])('autentica em %s, abre %s e mantém a sessão na navegação', async (path, destination) => {
 	await abrirPagina(path)
 	const values: Record<string, string> = { username: 'davi', password: 'UmaSenhaSegura123!' }
 
@@ -135,7 +135,7 @@ it.each(['/login', '/criar-conta'])('autentica em %s, abre o Feed e permite abri
 	}
 
 	await enviarFormulario(values)
-	expect(window.location.pathname).toBe('/')
+	expect(window.location.pathname).toBe(destination)
 	expect(auth).toEqual({ accessToken: 'token-valido', sessaoVerificada: true })
 
 	const authCall = fetchMock.mock.calls.find(call => String(call[0]).endsWith('/auth/register') || String(call[0]).endsWith('/auth/login'))!
@@ -146,6 +146,14 @@ it.each(['/login', '/criar-conta'])('autentica em %s, abre o Feed e permite abri
 	} else {
 		expect(String(authCall[1]?.body)).toBe(new URLSearchParams({ username: 'davi', password: values.password }).toString())
 	}
+
+	if (path === '/criar-conta') {
+		await act(async () => {
+			container.querySelector<HTMLAnchorElement>('.conteudo-card-explorar a')!.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }))
+		})
+	}
+
+	expect(window.location.pathname).toBe('/')
 
 	await act(async () => {
 		container.querySelector<HTMLAnchorElement>('.header a[href="/acesso"]')!.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }))

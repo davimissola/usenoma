@@ -58,7 +58,7 @@ export function Login() {
 	}
 
 	if (auth.accessToken) {
-		return <Navigate to='/' replace />
+		return <Navigate to='/usuario' replace />
 	}
 
 	return (

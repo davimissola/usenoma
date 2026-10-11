@@ -61,7 +61,7 @@ export function CriarConta() {
 
 			const data: AuthTokenResponse = await response.json()
 			definirSessao(data.access_token)
-			navigate('/', { replace: true })
+			navigate('/explorar', { replace: true })
 		} catch {
 			setErro('Não foi possível criar a conta. Tente novamente.')
 		} finally {
@@ -70,7 +70,8 @@ export function CriarConta() {
 	}
 
 	if (auth.accessToken) {
-		return <Navigate to='/' replace />
+		// Mantém o destino do cadastro quando o token já estiver salvo na sessão.
+		return <Navigate to='/explorar' replace />
 	}
 
 	return (
