@@ -6,7 +6,6 @@ from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from app.core.config import settings
 from app.modules.stores import storage
 from app.modules.stores.image_processing import process_store_image, validate_store_image
 from app.modules.stores.models import StoreImage, StoreImageVariant
@@ -82,7 +81,7 @@ def upload_image(db: Session, store_id: UUID, user_id: UUID, image_type: StoreIm
 		for variant, (data, width, height) in processed.items():
 			storage_path = variant_paths[variant]
 			db.add(StoreImageVariant(store_image_id=image.id, variant=variant, storage_path=storage_path, mime_type='image/webp', width=width, height=height, size_bytes=len(data)))
-			response_variants[variant] = StoreImageVariantResponse(url=f'{settings.supabase_url}/storage/v1/object/public/{settings.supabase_storage_bucket}/{storage_path}', mime_type='image/webp', width=width, height=height, size_bytes=len(data))
+			response_variants[variant] = StoreImageVariantResponse(url=storage.get_store_image_url(storage_path), mime_type='image/webp', width=width, height=height, size_bytes=len(data))
 
 		db.flush()
 		response = StoreImageResponse(id=image.id, store_id=image.store_id, type=image.type, variants=response_variants)

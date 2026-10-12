@@ -79,3 +79,8 @@ class StoreImageResponse(BaseModel):
 	store_id: UUID
 	type: StoreImageType
 	variants: dict[StoreImageVariantName, StoreImageVariantResponse]
+
+
+class StorePublicResponse(StoreResponse):
+	logo: dict[StoreImageVariantName, StoreImageVariantResponse] | None = None
+	cover: dict[StoreImageVariantName, StoreImageVariantResponse] | None = None

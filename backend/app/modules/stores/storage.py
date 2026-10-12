@@ -4,6 +4,14 @@ from fastapi import HTTPException
 from app.core.config import settings
 
 
+def get_store_image_url(storage_path: str) -> str:
+	# Monta a URL pública localmente; leitura não exige chave secreta nem chamada ao Storage.
+	if not settings.supabase_url:
+		raise HTTPException(status_code=503, detail='Storage não configurado.')
+
+	return f'{settings.supabase_url}/storage/v1/object/public/{settings.supabase_storage_bucket}/{storage_path}'
+
+
 def upload_store_image(storage_path: str, data: bytes, mime_type: str) -> None:
 	# Recebe bytes já processados; esta função cuida apenas da chamada ao Supabase.
 	if not settings.supabase_url or not settings.supabase_secret_key or not settings.supabase_secret_key.get_secret_value():

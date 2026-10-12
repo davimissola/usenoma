@@ -25,9 +25,13 @@ def test_store_basic_data_is_public_and_contains_only_public_fields(client, shop
 		path = '/stores/slug/saint'
 
 	response = client.get(path)
+	expected = {'id': str(shop['store_id']), 'name': 'Saint', 'slug': 'saint', 'description': 'Streetwear.'}
+
+	if lookup == 'slug':
+		expected.update({'logo': None, 'cover': None})
 
 	assert response.status_code == 200
-	assert response.json() == {'id': str(shop['store_id']), 'name': 'Saint', 'slug': 'saint', 'description': 'Streetwear.'}
+	assert response.json() == expected
 
 
 def test_unknown_store_and_invalid_id_return_coherent_errors(client):

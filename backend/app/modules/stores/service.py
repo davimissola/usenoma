@@ -5,8 +5,9 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.modules.stores.models import Store, StoreMember
-from app.modules.stores.schemas import StoreCreate, StoreMemberCreate, StoreMemberResponse, StoreMemberUpdate, StoreUpdate
+from app.modules.stores import storage
+from app.modules.stores.models import Store, StoreImage, StoreImageVariant, StoreMember
+from app.modules.stores.schemas import StoreCreate, StoreImageVariantResponse, StoreMemberCreate, StoreMemberResponse, StoreMemberUpdate, StorePublicResponse, StoreUpdate
 from app.modules.users.models import User
 
 
@@ -55,6 +56,22 @@ def get_store_by_slug(db: Session, slug: str) -> Store:
 		raise HTTPException(status_code=404, detail='Loja não encontrada.')
 
 	return store
+
+
+def get_public_store_by_slug(db: Session, slug: str) -> StorePublicResponse:
+	store = get_store_by_slug(db, slug)
+	# Um único join busca todas as variantes da loja, sem consultas dentro do loop.
+	rows = db.execute(select(StoreImage.type, StoreImageVariant).join(StoreImageVariant, StoreImageVariant.store_image_id == StoreImage.id).where(StoreImage.store_id == store.id)).all()
+	images = {'logo': None, 'cover': None}
+
+	for image_type, variant in rows:
+		if images[image_type] is None:
+			images[image_type] = {}
+
+		# Só retorna variantes existentes, inclusive imagens antigas que possuem apenas uma.
+		images[image_type][variant.variant] = StoreImageVariantResponse(url=storage.get_store_image_url(variant.storage_path), mime_type=variant.mime_type, width=variant.width, height=variant.height, size_bytes=variant.size_bytes)
+
+	return StorePublicResponse(id=store.id, name=store.name, slug=store.slug, description=store.description, logo=images['logo'], cover=images['cover'])
 
 
 def lock_store(db: Session, store_id: UUID) -> Store:

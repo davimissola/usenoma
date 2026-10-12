@@ -7,7 +7,7 @@ from app.core.database import DbSession
 from app.modules.auth.dependencies import CurrentUserId
 from app.modules.stores import image_service, service
 from app.modules.stores.models import Store
-from app.modules.stores.schemas import StoreImageResponse, StoreImageType, StoreMemberCreate, StoreMemberResponse, StoreMemberUpdate, StoreResponse, StoreUpdate
+from app.modules.stores.schemas import StoreImageResponse, StoreImageType, StoreMemberCreate, StoreMemberResponse, StoreMemberUpdate, StorePublicResponse, StoreResponse, StoreUpdate
 
 
 router = APIRouter(prefix='/stores', tags=['Stores'])
@@ -15,9 +15,9 @@ router = APIRouter(prefix='/stores', tags=['Stores'])
 
 
 
-@router.get('/slug/{slug}', response_model=StoreResponse)
-def get_by_slug(slug: str, db: DbSession) -> Store:
-	return service.get_store_by_slug(db, slug)
+@router.get('/slug/{slug}', response_model=StorePublicResponse)
+def get_by_slug(slug: str, db: DbSession) -> StorePublicResponse:
+	return service.get_public_store_by_slug(db, slug)
 
 
 @router.get('/{store_id}', response_model=StoreResponse)
