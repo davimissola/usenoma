@@ -122,3 +122,28 @@ Dentro de `backend`, com o `.env` configurado e as migrations aplicadas:
 ```
 
 `--description` é opcional. O usuário responsável precisa existir. A loja e seu primeiro owner são salvos juntos; qualquer falha desfaz a criação. Este comando deve ser executado pela equipe NOMA com acesso ao ambiente do backend.
+
+## Imagens das lojas
+
+Configure `SUPABASE_URL`, `SUPABASE_SECRET_KEY` (chave `sb_secret_...`) e `SUPABASE_STORAGE_BUCKET=store-media` no ambiente do backend. A chave fica somente no servidor. No Supabase Storage, crie `store-media` como bucket público para leitura, sem políticas de escrita para `anon` ou `authenticated`. Pode definir também limite de 5 MiB e tipos permitidos `image/jpeg`, `image/png` e `image/webp` no bucket.
+
+Instale as dependências atualizadas e aplique a migration dentro de `backend`:
+
+```powershell
+.\venv\Scripts\python.exe -m pip install -r requirements.txt
+.\venv\Scripts\python.exe -m alembic upgrade head
+```
+
+Envie `PUT /stores/{store_id}/images/logo` ou `/cover`, com Bearer token e `multipart/form-data` no campo `file`. Owner e manager podem enviar/substituir. A resposta contém `id`, `store_id`, `type` e um objeto `variants`: cada nome aponta para URL pública, MIME, largura, altura e tamanho em bytes. `DELETE` nos mesmos endereços remove a imagem lógica e tenta excluir seus arquivos; repetir a remoção retorna `204`.
+
+JPEG, PNG e WebP estáticos são validados pelos bytes, com até 5 MiB, 6000 pixels por lado e 20 milhões de pixels no total. SVG, animações e arquivos multipágina são rejeitados. Pillow decodifica, corrige orientação EXIF e normaliza para RGB/RGBA, preservando transparência. Perfis ICC válidos e compatíveis são convertidos para sRGB; perfis inválidos são descartados. As saídas são WebP sem EXIF/ICC/XMP, com resize LANCZOS, sem crop nem upscale.
+
+Logo usa `small` até 256 px e `medium` até 512 px, com qualidade 90. Cover usa `medium` até 960 px e `large` até 1920 px, com qualidade 85. O limite é aplicado ao maior lado, mantendo proporção. Variantes que resultam nas mesmas dimensões compartilham um arquivo físico. Não se armazena o original de novos uploads.
+
+Cada envio usa paths `stores/<store_id>/<type>/<uuid>/<variant>.webp`. Todas as variantes são processadas e enviadas antes da transação curta no banco, com nova verificação de autorização. Depois do commit, os arquivos anteriores são excluídos. Falhas parciais de upload ou falhas confirmadas antes do commit tentam excluir todos os novos arquivos; resultado incerto do commit os preserva. Falhas na limpeza geram log com o path pendente, sem chave ou resposta externa. Essa limpeza é best effort e pode deixar arquivos órfãos em falhas ou interrupções.
+
+`store_images` representa logo/cover; `store_image_variants` guarda cada arquivo e seus metadados. A migration `0004` preserva referências do 3A como `medium` para logo e `large` para cover, sem acessar o Storage. Elas continuam válidas até serem substituídas; novos envios passam pelo processamento. O downgrade recupera só a maior variante para o formato antigo e não altera arquivos no Storage.
+
+Os testes usam PostgreSQL local e simulam as operações externas de Storage. Não precisam de Supabase real.
+
+Para revisar o fluxo e as funções principais: [resumo de estudo](ESTUDO_IMAGENS.md).

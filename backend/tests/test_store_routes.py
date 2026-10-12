@@ -13,28 +13,6 @@ from app.modules.stores.models import Store, StoreMember
 from app.modules.users.models import User
 
 
-@pytest.fixture
-def shop():
-	with SessionLocal() as db:
-		store = Store(name='Saint', slug='saint', description='Streetwear.')
-		other_store = Store(name='Noma Brasil', slug='noma-brasil')
-		owner = User(username='owner', email='owner@example.com', password_hash='hash-de-teste')
-		manager = User(username='manager', email='manager@example.com', password_hash='hash-de-teste')
-		outsider = User(username='outsider', email='outsider@example.com', password_hash='hash-de-teste')
-		new_user = User(username='maria', email='maria@example.com', password_hash='hash-de-teste')
-		db.add_all([store, other_store, owner, manager, outsider, new_user])
-		db.flush()
-		db.add_all([
-			StoreMember(store_id=store.id, user_id=owner.id, role='owner'),
-			StoreMember(store_id=store.id, user_id=manager.id, role='manager'),
-			StoreMember(store_id=other_store.id, user_id=outsider.id, role='owner'),
-			StoreMember(store_id=other_store.id, user_id=owner.id, role='manager'),
-		])
-		db.commit()
-
-		return {'store_id': store.id, 'other_store_id': other_store.id, 'owner_id': owner.id, 'manager_id': manager.id, 'outsider_id': outsider.id, 'new_user_id': new_user.id}
-
-
 def headers_for(user_id):
 	return {'Authorization': f'Bearer {create_access_token(user_id)}'}
 

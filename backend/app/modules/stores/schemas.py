@@ -7,6 +7,8 @@ from pydantic import BaseModel, ConfigDict, StringConstraints, field_validator
 StoreName = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=120)]
 StoreSlug = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=120, pattern=r'^[a-z0-9]+(-[a-z0-9]+)*$')]
 StoreRole = Literal['owner', 'manager']
+StoreImageType = Literal['logo', 'cover']
+StoreImageVariantName = Literal['small', 'medium', 'large']
 
 
 class StoreCreate(BaseModel):
@@ -62,3 +64,18 @@ class StoreMemberResponse(BaseModel):
 	user_id: UUID
 	username: str
 	role: StoreRole
+
+
+class StoreImageVariantResponse(BaseModel):
+	url: str
+	mime_type: Literal['image/jpeg', 'image/png', 'image/webp']
+	width: int
+	height: int
+	size_bytes: int
+
+
+class StoreImageResponse(BaseModel):
+	id: UUID
+	store_id: UUID
+	type: StoreImageType
+	variants: dict[StoreImageVariantName, StoreImageVariantResponse]

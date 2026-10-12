@@ -16,6 +16,9 @@ class Settings(BaseSettings):
 	access_token_expire_minutes: int = Field(default=30, gt=0)
 	refresh_token_expire_days: int = Field(default=30, gt=0)
 	cookie_secure: bool = True
+	supabase_url: str | None = None
+	supabase_secret_key: SecretStr | None = None
+	supabase_storage_bucket: str = Field(default='store-media', min_length=1, max_length=63, pattern=r'^[a-z0-9][a-z0-9_-]*$')
 
 	@field_validator('database_url')
 	@classmethod
@@ -46,6 +49,20 @@ class Settings(BaseSettings):
 
 		if url.scheme not in {'http', 'https'} or not url.hostname or url.username is not None or url.path or url.query or url.fragment:
 			raise ValueError('FRONTEND_URL deve ser a origem HTTP ou HTTPS do frontend, sem caminho, credenciais, query ou fragmento.')
+
+		return value
+
+	@field_validator('supabase_url')
+	@classmethod
+	def validate_supabase_url(cls, value: str | None) -> str | None:
+		if not value:
+			return None
+
+		value = value.strip().rstrip('/')
+		url = urlsplit(value)
+
+		if url.scheme != 'https' or not url.hostname or url.username is not None or url.path or url.query or url.fragment:
+			raise ValueError('SUPABASE_URL deve ser a origem HTTPS do projeto, sem credenciais, caminho, query ou fragmento.')
 
 		return value
 
