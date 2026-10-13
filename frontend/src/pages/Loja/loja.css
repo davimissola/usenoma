@@ -1,0 +1,23 @@
+.pages-loja {
+	min-height: 100vh;
+	min-height: 100dvh;
+	padding-top: 70px;
+	background-color: #080808;
+	color: #ffffff;
+}
+
+.mensagem-loja {
+	padding: 24px;
+	text-align: center;
+}
+
+.mensagem-loja button {
+	margin-top: 12px;
+	padding: 8px 16px;
+	border: 1px solid #83868d;
+	border-radius: 20px;
+	background-color: transparent;
+	color: #ffffff;
+	font: inherit;
+	cursor: pointer;
+}

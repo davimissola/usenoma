@@ -56,7 +56,7 @@ def test_register_stores_hashes_and_returns_bearer_token(client):
 
 	me = client.get('/users/me', headers={'Authorization': f"Bearer {response.json()['access_token']}"})
 	assert me.status_code == 200
-	assert me.json() == {'id': str(user_id), 'username': 'davi', 'email': 'davi@example.com'}
+	assert me.json() == {'id': str(user_id), 'username': 'davi', 'email': 'davi@example.com', 'stores': []}
 
 
 @pytest.mark.parametrize('changes', [{'username': 'DAVI', 'email': 'other@example.com'}, {'username': 'outro', 'email': 'DAVI@example.com'}])

@@ -30,7 +30,11 @@ beforeEach(() => {
 			return Response.json({ access_token: 'token-valido', token_type: 'bearer' })
 		}
 
-		return Response.json({ id: '937a54e0-9c4e-40f7-9c3d-5b32994d0318', username: 'davi', email: 'davi@example.com' })
+		if (String(input).includes('/stores/slug/')) {
+			return Response.json({ id: 'loja-saint', name: 'Saint', slug: 'saint', description: null, logo: null, cover: null })
+		}
+
+		return Response.json({ id: '937a54e0-9c4e-40f7-9c3d-5b32994d0318', username: 'davi', email: 'davi@example.com', stores: [] })
 	})
 
 	container = document.createElement('div')
@@ -96,7 +100,45 @@ it('recupera a sessão após F5 em Usuario sem passar por Acesso', async () => {
 
 	expect(window.location.pathname).toBe('/usuario')
 	expect(container.querySelector('.pages-usuario h2')?.textContent).toBe('davi')
+	expect(container.querySelector('.card-loja-usuario')).toBeNull()
 	expect(auth.accessToken).toBe('token-recuperado')
+})
+
+
+it('mostra os cards do usuário e abre a loja pelo slug', async () => {
+	definirSessao('token-valido')
+	fetchMock.mockImplementation(async input => {
+		if (String(input).endsWith('/stores/slug/adora-brasil')) {
+			return Response.json({ id: 'loja-adora', name: 'Adora', slug: 'adora-brasil', description: null, logo: null, cover: null })
+		}
+
+		return Response.json({ id: '937a54e0-9c4e-40f7-9c3d-5b32994d0318', username: 'davi', email: 'davi@example.com', stores: [{ id: 'loja-adora', name: 'Adora', slug: 'adora-brasil' }, { id: 'loja-saint', name: 'Saint', slug: 'saint' }] })
+	})
+
+	await abrirPagina('/usuario')
+	const lojas = Array.from(container.querySelectorAll('.card-loja-usuario'))
+
+	expect(lojas.map(loja => loja.querySelector('h3')?.textContent)).toEqual(['Adora', 'Saint'])
+	expect(container.querySelectorAll('.titulo-lojas-usuario')).toHaveLength(1)
+	expect(lojas[0].querySelector('a')?.getAttribute('href')).toBe('/adora-brasil')
+
+	await act(async () => {
+		lojas[0].querySelector('a')!.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }))
+	})
+
+	expect(window.location.pathname).toBe('/adora-brasil')
+	expect(container.querySelector('.hero-loja-capa')).not.toBeNull()
+	expect(fetchMock.mock.calls.some(call => String(call[0]).endsWith('/stores/slug/adora-brasil'))).toBe(true)
+})
+
+
+it('busca a loja pelo slug e abre a hero mesmo sem sessão', async () => {
+	await abrirPagina('/saint')
+
+	expect(window.location.pathname).toBe('/saint')
+	expect(container.querySelector('.pages-loja .hero-loja-capa')).not.toBeNull()
+	expect(container.querySelector('.header')).not.toBeNull()
+	expect(fetchMock.mock.calls.filter(call => !String(call[0]).endsWith('/auth/refresh')).every(call => String(call[0]).endsWith('/stores/slug/saint'))).toBe(true)
 })
 
 
@@ -109,13 +151,13 @@ it('manda visitantes de Usuario para Acesso após concluir a verificação', asy
 })
 
 
-it.each([['/acesso', '/usuario'], ['/login', '/'], ['/criar-conta', '/explorar']])('recupera a sessão em %s e abre %s sem mostrar formulários', async (path, destination) => {
+it.each([['/acesso', '/usuario'], ['/login', '/usuario'], ['/criar-conta', '/explorar']])('recupera a sessão em %s e abre %s sem mostrar formulários', async (path, destination) => {
 	fetchMock.mockImplementation(async input => {
 		if (String(input).endsWith('/auth/refresh')) {
 			return Response.json({ access_token: 'token-recuperado', token_type: 'bearer' })
 		}
 
-		return Response.json({ id: '937a54e0-9c4e-40f7-9c3d-5b32994d0318', username: 'davi', email: 'davi@example.com' })
+		return Response.json({ id: '937a54e0-9c4e-40f7-9c3d-5b32994d0318', username: 'davi', email: 'davi@example.com', stores: [] })
 	})
 
 	await abrirPagina(path)
@@ -125,7 +167,7 @@ it.each([['/acesso', '/usuario'], ['/login', '/'], ['/criar-conta', '/explorar']
 })
 
 
-it.each([['/login', '/'], ['/criar-conta', '/explorar']])('autentica em %s, abre %s e mantém a sessão na navegação', async (path, destination) => {
+it.each([['/login', '/usuario'], ['/criar-conta', '/explorar']])('autentica em %s, abre %s e mantém a sessão na navegação', async (path, destination) => {
 	await abrirPagina(path)
 	const values: Record<string, string> = { username: 'davi', password: 'UmaSenhaSegura123!' }
 
@@ -150,6 +192,10 @@ it.each([['/login', '/'], ['/criar-conta', '/explorar']])('autentica em %s, abre
 	if (path === '/criar-conta') {
 		await act(async () => {
 			container.querySelector<HTMLAnchorElement>('.conteudo-card-explorar a')!.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }))
+		})
+	} else {
+		await act(async () => {
+			container.querySelector<HTMLAnchorElement>('.voltar-usuario')!.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }))
 		})
 	}
 
@@ -176,7 +222,7 @@ it('JWT expirado e refresh válido mantêm a página Usuario aberta', async () =
 			return new Response(null, { status: 401 })
 		}
 
-		return Response.json({ id: '937a54e0-9c4e-40f7-9c3d-5b32994d0318', username: 'davi', email: 'davi@example.com' })
+		return Response.json({ id: '937a54e0-9c4e-40f7-9c3d-5b32994d0318', username: 'davi', email: 'davi@example.com', stores: [] })
 	})
 
 	await abrirPagina('/usuario')

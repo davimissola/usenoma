@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import type { UsuarioInicioProps } from '../../types/users'
 import { EstiloPreferido } from '../EstiloPreferido'
 import fotoUsuario from '../../assets/svg/illustrations/fotoUsuario.png'
@@ -35,6 +36,20 @@ export function UsuarioInicio({ usuario }: UsuarioInicioProps) {
 
 			{/* Imagem e estilo de teste enquanto esses dados não vêm do backend. */}
 			<EstiloPreferido image={fotoTeste03} styleName='Streetwear' />
+
+
+
+			{usuario.stores.length > 0 && <h4 className='titulo-lojas-usuario'>Suas lojas</h4>}
+			{usuario.stores.map((loja) => (
+				<div key={loja.id} className='card-loja-usuario'>
+					<h3>{loja.name}</h3>
+
+					<div>
+						<Link to={`/${loja.slug}`}>Ver {loja.name}</Link>
+						<a href="#">Editar {loja.name}</a>
+					</div>
+				</div>
+			))}
 		</section>
 	)
 }
