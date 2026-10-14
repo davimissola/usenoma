@@ -131,12 +131,14 @@ def test_image_from_another_product_cannot_be_changed(client, shop, product, pro
 
 def test_full_product_rejects_new_image_before_processing(client, shop, product, product_storage, monkeypatch):
 	with SessionLocal() as db:
-		db.add_all([ProductImage(product_id=product, position=position, storage_path=f'products/{position}/large.webp') for position in range(1, 6)])
+		db.add_all([ProductImage(product_id=product, position=position, storage_path=f'products/{position}/large.webp') for position in range(1, 5)])
 		db.commit()
 
 	process = Mock(side_effect=AssertionError('Produto cheio não deve processar outra imagem.'))
 	monkeypatch.setattr(image_service, 'process_image', process)
-	assert send_image(client, shop, product, data=b'invalid').status_code == 409
+	response = send_image(client, shop, product, data=b'invalid')
+	assert response.status_code == 409
+	assert response.json()['detail'] == 'O produto pode ter no máximo quatro imagens.'
 	process.assert_not_called()
 	product_storage[0].assert_not_called()
 
@@ -274,9 +276,9 @@ def test_permission_revoked_during_upload_is_checked_again(client, shop, product
 	assert product_storage[1].call_count == 2
 
 
-def test_simultaneous_uploads_do_not_exceed_five_images(shop, product, product_storage, monkeypatch):
+def test_simultaneous_uploads_do_not_exceed_four_images(shop, product, product_storage, monkeypatch):
 	with SessionLocal() as db:
-		db.add_all([ProductImage(product_id=product, position=position, storage_path=f'products/{position}/large.webp') for position in range(1, 5)])
+		db.add_all([ProductImage(product_id=product, position=position, storage_path=f'products/{position}/large.webp') for position in range(1, 4)])
 		db.commit()
 
 	barrier = Barrier(2)
@@ -298,4 +300,124 @@ def test_simultaneous_uploads_do_not_exceed_five_images(shop, product, product_s
 	assert sorted(statuses) == [201, 409]
 	assert product_storage[1].call_count == 2
 	with SessionLocal() as db:
-		assert len(db.scalars(select(ProductImage).where(ProductImage.product_id == product)).all()) == 5
+		assert len(db.scalars(select(ProductImage).where(ProductImage.product_id == product)).all()) == 4
+
+
+@pytest.mark.parametrize('method', ['POST', 'PUT', 'DELETE', 'PATCH'])
+def test_image_writes_cannot_use_another_store(client, shop, product, product_storage, monkeypatch, method):
+	process = Mock()
+	monkeypatch.setattr(image_service, 'process_image', process)
+	path = f"/stores/{shop['other_store_id']}/products/{product}/images"
+	data = None
+	if method in {'PUT', 'DELETE'}:
+		path += f'/{uuid4()}'
+	elif method == 'PATCH':
+		path += '/order'
+		data = {'image_ids': []}
+
+	headers = {'Authorization': f"Bearer {create_access_token(shop['owner_id'])}"}
+	if method in {'POST', 'PUT'}:
+		response = client.request(method, path, headers=headers, files={'file': ('invalid.png', b'invalid', 'image/png')})
+	else:
+		response = client.request(method, path, headers=headers, json=data)
+	assert response.status_code == 404
+	process.assert_not_called()
+	product_storage[0].assert_not_called()
+	product_storage[1].assert_not_called()
+
+
+def test_full_product_can_replace_an_image_without_adding_a_fifth(client, shop, product, product_storage):
+	with SessionLocal() as db:
+		rows = [ProductImage(product_id=product, position=position, storage_path=f'products/{position}/large.webp') for position in range(1, 5)]
+		db.add_all(rows)
+		db.commit()
+		image_id = rows[2].id
+
+	response = send_image(client, shop, product, user='manager_id', image_id=str(image_id))
+	assert response.status_code == 200
+	assert response.json()['position'] == 3
+	assert product_storage[1].call_count == 2
+	assert len(client.get(f'/products/{product}').json()['images']) == 4
+
+
+def test_failed_replacement_upload_preserves_the_old_reference(client, shop, product, product_storage):
+	first = send_image(client, shop, product).json()
+	product_storage[0].reset_mock()
+	product_storage[0].side_effect = HTTPException(status_code=503, detail='Falha no upload.')
+	assert send_image(client, shop, product, image_id=first['id']).status_code == 503
+	assert client.get(f'/products/{product}').json()['images'] == [first]
+	assert product_storage[1].call_count == 1
+	assert product_storage[1].call_args.args[0] == product_storage[0].call_args.args[0]
+
+
+def test_product_removed_during_upload_cleans_new_files(client, shop, product, product_storage):
+	def delete_product_during_upload(path, data, mime):
+		with SessionLocal() as db:
+			row = db.get(Product, product)
+			if row:
+				db.delete(row)
+				db.commit()
+
+	product_storage[0].side_effect = delete_product_during_upload
+	assert send_image(client, shop, product).status_code == 404
+	assert product_storage[1].call_count == 2
+	with SessionLocal() as db:
+		assert db.scalars(select(ProductImage)).all() == []
+
+
+def test_delete_product_survives_storage_cleanup_failure(client, shop, product, product_storage, caplog):
+	send_image(client, shop, product)
+	product_storage[1].side_effect = HTTPException(status_code=503, detail='Falha na limpeza.')
+	response = client.delete(f"/stores/{shop['store_id']}/products/{product}", headers={'Authorization': f"Bearer {create_access_token(shop['manager_id'])}"})
+	assert response.status_code == 204
+	assert product_storage[1].call_count == 2
+	assert client.get(f'/products/{product}').status_code == 404
+	assert 'arquivo pendente' in caplog.text
+
+
+def test_manager_can_reorder_four_images_delete_and_reuse_position(client, shop, product, product_storage):
+	with SessionLocal() as db:
+		images = [ProductImage(product_id=product, position=position, storage_path=f'products/{position}/large.webp') for position in range(1, 5)]
+		db.add_all(images)
+		db.commit()
+		ids = [str(image.id) for image in reversed(images)]
+
+	base = f"/stores/{shop['store_id']}/products/{product}/images"
+	headers = {'Authorization': f"Bearer {create_access_token(shop['manager_id'])}"}
+	response = client.patch(f'{base}/order', json={'image_ids': ids}, headers=headers)
+	assert response.status_code == 200
+	assert [row['id'] for row in response.json()] == ids
+	assert client.delete(f'{base}/{ids[0]}', headers=headers).status_code == 204
+	assert send_image(client, shop, product, user='manager_id').json()['position'] == 4
+	assert [row['position'] for row in client.get(f'/products/{product}').json()['images']] == [1, 2, 3, 4]
+
+
+def test_reorder_empty_product_is_a_valid_noop(client, shop, product, product_storage):
+	response = client.patch(f"/stores/{shop['store_id']}/products/{product}/images/order", json={'image_ids': []}, headers={'Authorization': f"Bearer {create_access_token(shop['owner_id'])}"})
+	assert response.status_code == 200
+	assert response.json() == []
+	product_storage[0].assert_not_called()
+	product_storage[1].assert_not_called()
+
+
+def test_reorder_rejects_more_than_four_ids_without_changing_images(client, shop, product, product_storage):
+	with SessionLocal() as db:
+		images = [ProductImage(product_id=product, position=position, storage_path=f'products/{position}/large.webp') for position in range(1, 5)]
+		db.add_all(images)
+		db.commit()
+		ids = [str(image.id) for image in images]
+
+	response = client.patch(f"/stores/{shop['store_id']}/products/{product}/images/order", json={'image_ids': ids + [str(uuid4())]}, headers={'Authorization': f"Bearer {create_access_token(shop['owner_id'])}"})
+	assert response.status_code == 422
+	assert [image['id'] for image in client.get(f'/products/{product}').json()['images']] == ids
+	product_storage[0].assert_not_called()
+	product_storage[1].assert_not_called()
+
+
+def test_truncated_jpeg_is_rejected_before_upload(client, shop, product, product_storage):
+	data = image_bytes('JPEG')
+	assert send_image(client, shop, product, data=data[:len(data) // 2]).status_code == 422
+	product_storage[0].assert_not_called()
+	product_storage[1].assert_not_called()
+	with SessionLocal() as db:
+		assert db.scalars(select(ProductImage)).all() == []

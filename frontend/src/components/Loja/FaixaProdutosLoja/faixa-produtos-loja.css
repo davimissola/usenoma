@@ -27,16 +27,21 @@
 	margin: 0;
 }
 
+.produto-loja {
+	max-width: 100%;
+	min-width: 0;
+	text-decoration: none;
+}
+
 .imagem-produto-loja {
 	display: block;
-	max-width: 205px;
-	min-height: 250px;
+	width: 205px;
+	height: 250px;
+	max-width: 100%;
 	object-fit: cover;
 }
 
 .imagem-produto-ausente {
-	width: 205px;
-	height: 250px;
 	background-color: #f5f5f5;
 }
 
@@ -60,13 +65,8 @@
 
 @media (min-width: 1024px) {
 	.imagem-produto-loja {
-		max-width: 400px;
-		min-height: 400px;
-	}
-
-	.imagem-produto-ausente {
-		width: 400px;
-		height: 400px;
+		width: 500px;
+		height: 600px;
 	}
 }
 

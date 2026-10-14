@@ -76,7 +76,7 @@ class ProductImageResponse(BaseModel):
 class ProductImageOrder(BaseModel):
 	model_config = ConfigDict(extra='forbid')
 
-	image_ids: list[UUID] = Field(max_length=5)
+	image_ids: list[UUID] = Field(max_length=4)
 
 	@field_validator('image_ids')
 	@classmethod

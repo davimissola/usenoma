@@ -16,3 +16,8 @@ export type ProdutoResponse = {
 	sizes: { size: string; available: boolean }[]
 	images: ImagemProdutoResponse[]
 }
+
+export type GaleriaProdutoProps = {
+	imagens: ImagemProdutoResponse[]
+	nomeProduto: string
+}

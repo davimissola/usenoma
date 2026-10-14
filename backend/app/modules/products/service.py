@@ -78,8 +78,10 @@ def create_product(db: Session, store_id: UUID, user_id: UUID, data: ProductCrea
 	require_store_member(db, store_id, user_id)
 	product = Product(store_id=store_id, **data.model_dump())
 	db.add(product)
+	db.flush()
+	response = build_product_responses(db, [product])[0]
 	db.commit()
-	return build_product_responses(db, [product])[0]
+	return response
 
 
 def update_product(db: Session, store_id: UUID, product_id: UUID, user_id: UUID, data: ProductUpdate) -> ProductResponse:
@@ -88,8 +90,11 @@ def update_product(db: Session, store_id: UUID, product_id: UUID, user_id: UUID,
 	for field, value in data.model_dump(exclude_unset=True).items():
 		setattr(product, field, value)
 
+	# Monta a resposta antes do commit: falhas na leitura ou nas URLs não salvam uma edição incompleta.
+	db.flush()
+	response = build_product_responses(db, [product])[0]
 	db.commit()
-	return build_product_responses(db, [product])[0]
+	return response
 
 
 def delete_product(db: Session, store_id: UUID, product_id: UUID, user_id: UUID) -> None:

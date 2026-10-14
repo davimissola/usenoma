@@ -1,0 +1,135 @@
+.galeria-produto {
+	width: 100%;
+	min-width: 0;
+	background-color: #ececec;
+}
+
+.carousel-produto {
+	position: relative;
+	aspect-ratio: 4 / 5;
+}
+
+.grade-imagens-produto {
+	display: none;
+}
+
+.carousel-produto > .imagem-ausente-produto {
+	position: absolute;
+	inset: 0;
+}
+
+.lista-imagens-produto {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	width: 100%;
+	height: 100%;
+	overflow-x: auto;
+	scroll-snap-type: x mandatory;
+	scrollbar-width: none;
+}
+
+.lista-imagens-produto::-webkit-scrollbar {
+	display: none;
+}
+
+.foto-galeria-produto {
+	flex: 0 0 100%;
+	min-width: 0;
+	height: 100%;
+	scroll-snap-align: start;
+	scroll-snap-stop: always;
+}
+
+.foto-galeria-produto img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+}
+
+.imagem-ausente-produto {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100%;
+	color: #83868d;
+	font-size: 14px;
+	text-align: center;
+}
+
+.indicadores-imagens-produto {
+	position: absolute;
+	bottom: 2px;
+	left: 0;
+	display: flex;
+	justify-content: center;
+	width: 100%;
+}
+
+.indicador-imagem-produto {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 15px;
+	height: 24px;
+	border: none;
+	background-color: transparent;
+	cursor: pointer;
+}
+
+.indicador-imagem-produto::after {
+	content: '';
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background-color: #d7d7d7;
+}
+
+.imagem-selecionada-produto::after {
+	background-color: #080808;
+}
+
+.indicador-imagem-produto:focus-visible,
+.lista-imagens-produto:focus-visible {
+	outline: 2px solid #080808;
+	outline-offset: -2px;
+}
+
+@media (min-width: 1024px) {
+	.galeria-produto {
+		flex: 0 0 50%;
+	}
+
+	.carousel-produto {
+		display: none;
+	}
+
+	.grade-imagens-produto {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 1px;
+		background-color: #f3f3f3;
+	}
+
+	.foto-grade-produto {
+		position: relative;
+		min-width: 0;
+		aspect-ratio: 2 / 3;
+		background-color: #ececec;
+	}
+
+	.foto-grade-produto img {
+		position: absolute;
+		inset: 0;
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.foto-grade-produto .imagem-ausente-produto {
+		position: absolute;
+		inset: 0;
+	}
+}

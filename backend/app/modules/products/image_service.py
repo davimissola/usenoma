@@ -41,8 +41,8 @@ def upload_image(db: Session, store_id: UUID, product_id: UUID, user_id: UUID, f
 	require_product_member(db, store_id, product_id, user_id)
 
 	if image_id is None:
-		if len(get_images(db, product_id)) >= 5:
-			raise HTTPException(status_code=409, detail='O produto pode ter no máximo cinco imagens.')
+		if len(get_images(db, product_id)) >= 4:
+			raise HTTPException(status_code=409, detail='O produto pode ter no máximo quatro imagens.')
 	else:
 		get_image(db, product_id, image_id)
 
@@ -71,8 +71,8 @@ def upload_image(db: Session, store_id: UUID, product_id: UUID, user_id: UUID, f
 		if image_id is None:
 			images = get_images(db, product_id)
 
-			if len(images) >= 5:
-				raise HTTPException(status_code=409, detail='O produto pode ter no máximo cinco imagens.')
+			if len(images) >= 4:
+				raise HTTPException(status_code=409, detail='O produto pode ter no máximo quatro imagens.')
 
 			set_positions(db, images)
 			image = ProductImage(product_id=product_id, storage_path=new_path, position=len(images) + 1)

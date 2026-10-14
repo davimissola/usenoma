@@ -2,8 +2,10 @@ from decimal import Decimal
 from pathlib import Path
 from uuid import uuid4
 
+import pytest
 from alembic import command
 from alembic.config import Config
+from sqlalchemy.exc import IntegrityError
 
 from app.core.database import engine
 
@@ -11,6 +13,27 @@ from app.core.database import engine
 def test_models_match_the_applied_migrations():
 	config = Config(str(Path(__file__).resolve().parents[1] / 'alembic.ini'))
 	command.check(config)
+
+
+def test_pending_product_migrations_return_safe_error_and_upgrade_restores_listing(client, shop):
+	config = Config(str(Path(__file__).resolve().parents[1] / 'alembic.ini'))
+	engine.dispose()
+
+	try:
+		command.downgrade(config, '0004')
+		response = client.get(f"/stores/{shop['store_id']}/products")
+		assert response.status_code == 503
+		assert set(response.json()) == {'detail'}
+		assert 'app.products' not in response.text
+		assert 'SELECT' not in response.text
+
+		command.upgrade(config, 'head')
+		response = client.get(f"/stores/{shop['store_id']}/products")
+		assert response.status_code == 200
+		assert response.json() == []
+	finally:
+		command.upgrade(config, 'head')
+		engine.dispose()
 
 
 def test_image_position_migration_preserves_rows_and_supports_downgrade():
@@ -38,6 +61,58 @@ def test_image_position_migration_preserves_rows_and_supports_downgrade():
 			assert connection.exec_driver_sql("SELECT condeferrable FROM pg_constraint WHERE conrelid = 'app.product_images'::regclass AND conname = 'uq_product_images_product_position'").scalar_one() is False
 			assert connection.exec_driver_sql('SELECT position FROM app.product_images WHERE id = %s', (image_id,)).scalar_one() == 1
 	finally:
+		command.upgrade(config, 'head')
+		engine.dispose()
+
+
+def test_four_image_limit_migration_preserves_images_and_supports_downgrade(shop, product):
+	config = Config(str(Path(__file__).resolve().parents[1] / 'alembic.ini'))
+	image_ids = [uuid4() for _ in range(4)]
+	engine.dispose()
+
+	try:
+		command.downgrade(config, '0006')
+		with engine.begin() as connection:
+			for position, image_id in enumerate(image_ids, 1):
+				connection.exec_driver_sql('INSERT INTO app.product_images (id, product_id, storage_path, position) VALUES (%s, %s, %s, %s)', (image_id, product, f'products/{position}/large.webp', position))
+
+		command.upgrade(config, 'head')
+		with engine.connect() as connection:
+			assert connection.exec_driver_sql('SELECT id FROM app.product_images ORDER BY position').scalars().all() == image_ids
+
+		with pytest.raises(IntegrityError), engine.begin() as connection:
+			connection.exec_driver_sql('INSERT INTO app.product_images (id, product_id, storage_path, position) VALUES (%s, %s, %s, %s)', (uuid4(), product, 'products/5/large.webp', 5))
+
+		command.downgrade(config, '0006')
+		with engine.begin() as connection:
+			connection.exec_driver_sql('INSERT INTO app.product_images (id, product_id, storage_path, position) VALUES (%s, %s, %s, %s)', (uuid4(), product, 'products/5/large.webp', 5))
+			assert connection.exec_driver_sql('SELECT count(*) FROM app.product_images').scalar_one() == 5
+	finally:
+		with engine.begin() as connection:
+			connection.exec_driver_sql('DELETE FROM app.product_images WHERE position > 4')
+		command.upgrade(config, 'head')
+		engine.dispose()
+
+
+def test_four_image_limit_migration_refuses_legacy_fifth_image_without_deleting_it(shop, product):
+	config = Config(str(Path(__file__).resolve().parents[1] / 'alembic.ini'))
+	engine.dispose()
+
+	try:
+		command.downgrade(config, '0006')
+		with engine.begin() as connection:
+			for position in range(1, 6):
+				connection.exec_driver_sql('INSERT INTO app.product_images (id, product_id, storage_path, position) VALUES (%s, %s, %s, %s)', (uuid4(), product, f'products/{position}/large.webp', position))
+
+		with pytest.raises(RuntimeError, match='posição 4'):
+			command.upgrade(config, 'head')
+
+		with engine.connect() as connection:
+			assert connection.exec_driver_sql('SELECT count(*) FROM app.product_images').scalar_one() == 5
+			assert connection.exec_driver_sql('SELECT version_num FROM public.alembic_version').scalar_one() == '0006'
+	finally:
+		with engine.begin() as connection:
+			connection.exec_driver_sql('DELETE FROM app.product_images WHERE position > 4')
 		command.upgrade(config, 'head')
 		engine.dispose()
 

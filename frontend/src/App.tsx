@@ -8,6 +8,7 @@ import { CriarConta } from './pages/CriarConta'
 import { Explorar } from './pages/Explorar'
 import { Usuario } from './pages/Usuario'
 import { Loja } from './pages/Loja'
+import { Produto } from './pages/Produto'
 
 
 function App() {
@@ -43,6 +44,7 @@ function App() {
 			<Route path='/login' element={verificandoSessao ? carregandoSessao : <Login />} />
 			<Route path='/criar-conta' element={verificandoSessao ? carregandoSessao : <CriarConta />} />
 			<Route path='/explorar' element={<Explorar />} />
+			<Route path='/produto/:id' element={<Produto />} />
 			<Route path='/:slug' element={<Loja />} />
 			<Route path='*' element={<Navigate to='/' replace />} />
 		</Routes>

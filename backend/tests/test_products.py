@@ -171,23 +171,23 @@ def test_size_availability_cannot_be_null(product_data):
 		assert error.value.orig.diag.column_name == 'available'
 
 
-def test_product_accepts_five_images_but_rejects_a_sixth(product_data):
+def test_product_accepts_four_images_but_rejects_a_fifth(product_data):
 	_, _, product_id, _ = product_data
 
 	with SessionLocal() as db:
-		db.add_all([ProductImage(product_id=product_id, storage_path=f'products/{position}.webp', position=position) for position in range(1, 6)])
+		db.add_all([ProductImage(product_id=product_id, storage_path=f'products/{position}.webp', position=position) for position in range(1, 5)])
 		db.commit()
 		positions = db.scalars(select(ProductImage.position).where(ProductImage.product_id == product_id).order_by(ProductImage.position)).all()
-		assert positions == [1, 2, 3, 4, 5]
+		assert positions == [1, 2, 3, 4]
 
-		db.add(ProductImage(product_id=product_id, storage_path='products/6.webp', position=6))
+		db.add(ProductImage(product_id=product_id, storage_path='products/5.webp', position=5))
 
 		with pytest.raises(IntegrityError) as error:
 			db.commit()
 
 		db.rollback()
 		assert error.value.orig.diag.constraint_name == 'ck_product_images_position'
-		assert db.scalar(select(func.count()).select_from(ProductImage)) == 5
+		assert db.scalar(select(func.count()).select_from(ProductImage)) == 4
 
 
 def test_image_position_is_unique_within_each_product(product_data):

@@ -259,6 +259,7 @@ it('exibe produtos reais com preço decimal formatado e primeira imagem ordenada
 	expect(container.querySelector('.imagem-produto-loja')?.getAttribute('src')).toBe(produtos[0].images[0].variants.card.url)
 	expect(container.querySelector('.legenda-produto-loja h3')?.textContent).toBe('Camiseta real')
 	expect(container.querySelector('.legenda-produto-loja p')?.textContent).toContain('149,90')
+	expect(container.querySelector('.produto-loja')?.getAttribute('href')).toBe('/produto/produto-saint')
 
 	const chamadas = fetchMock.mock.calls.filter(call => String(call[0]).endsWith('/stores/loja-saint/products'))
 	expect(chamadas.length).toBeGreaterThan(0)
@@ -266,6 +267,29 @@ it('exibe produtos reais com preço decimal formatado e primeira imagem ordenada
 		expect(new Headers(options?.headers).has('Authorization')).toBe(false)
 		expect(options?.credentials).not.toBe('include')
 	}
+})
+
+
+it('clicar no card abre o detalhe público do produto', async () => {
+	fetchMock.mockImplementation(async input => {
+		if (String(input).endsWith('/auth/refresh')) {
+			return new Response(null, { status: 401 })
+		}
+		if (String(input).endsWith('/products/produto-saint')) {
+			return Response.json(produtos[0])
+		}
+		if (String(input).endsWith('/products')) {
+			return Response.json(produtos)
+		}
+		return Response.json(loja)
+	})
+	await abrirPagina()
+	await act(async () => {
+		container.querySelector<HTMLAnchorElement>('.produto-loja')!.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }))
+	})
+	expect(window.location.pathname).toBe('/produto/produto-saint')
+	expect(container.querySelector('.conteudo-produto h1')?.textContent).toBe('Camiseta real')
+	expect(container.querySelector('.foto-galeria-produto img')?.getAttribute('src')).toBe(produtos[0].images[0].variants.large.url)
 })
 
 
@@ -286,14 +310,29 @@ it('produto sem imagem usa espaço neutro sem foto mockada', async () => {
 })
 
 
-it('falha nos produtos preserva a loja e permite tentar novamente', async () => {
+it.each([500, 503, 401, 404, 'conexao', 'json', 'objeto', 'null'])('falha %s nos produtos preserva a loja e permite tentar novamente', async tipoFalha => {
 	let falha = true
 	fetchMock.mockImplementation(async input => {
 		if (String(input).endsWith('/auth/refresh')) {
 			return new Response(null, { status: 401 })
 		}
 		if (String(input).endsWith('/products')) {
-			return falha ? new Response(null, { status: 503 }) : Response.json(produtos)
+			if (!falha) {
+				return Response.json(produtos)
+			}
+			if (tipoFalha === 'conexao') {
+				throw new TypeError('Failed to fetch')
+			}
+			if (tipoFalha === 'json') {
+				return new Response('JSON inválido', { status: 200 })
+			}
+			if (tipoFalha === 'objeto') {
+				return Response.json({ detail: 'Resposta inesperada' })
+			}
+			if (tipoFalha === 'null') {
+				return Response.json(null)
+			}
+			return new Response(null, { status: Number(tipoFalha) })
 		}
 		return Response.json(loja)
 	})
@@ -307,6 +346,7 @@ it('falha nos produtos preserva a loja e permite tentar novamente', async () => 
 	})
 	expect(container.querySelector('[role="alert"]')).toBeNull()
 	expect(container.querySelector('.legenda-produto-loja h3')?.textContent).toBe('Camiseta real')
+	expect(fetchMock.mock.calls.filter(call => String(call[0]).endsWith('/auth/refresh'))).toHaveLength(1)
 })
 
 
@@ -339,4 +379,50 @@ it('trocar de loja ignora uma consulta de produtos atrasada', async () => {
 	await act(async () => { concluirProdutos(Response.json(produtos)) })
 	expect(container.querySelector('.perfil-hero-loja h2')?.textContent).toBe('Adora')
 	expect(container.querySelector('.faixa-produtos-loja')).toBeNull()
+})
+
+
+it('imagem de produto quebrada usa espaço neutro e preserva nome, preço e demais produtos', async () => {
+	produtos.push({ ...produtos[0], id: 'produto-02', name: 'Outra camiseta', price: '0.00', images: [{ ...produtos[0].images[0], id: 'imagem-02', variants: { card: { url: 'https://storage.noma.test/outra.webp' }, large: { url: 'https://storage.noma.test/outra-large.webp' } } }] })
+	await abrirPagina()
+	await act(async () => {
+		container.querySelector('.produto-loja img')!.dispatchEvent(new Event('error'))
+	})
+
+	const cards = container.querySelectorAll('.produto-loja')
+	expect(cards).toHaveLength(2)
+	expect(cards[0].querySelector('img')).toBeNull()
+	expect(cards[0].querySelector('.imagem-produto-ausente')).not.toBeNull()
+	expect(cards[0].querySelector('h3')?.textContent).toBe('Camiseta real')
+	expect(cards[0].querySelector('p')?.textContent).toContain('149,90')
+	expect(cards[1].querySelector('img')?.getAttribute('src')).toBe('https://storage.noma.test/outra.webp')
+	expect(cards[1].querySelector('p')?.textContent).toContain('0,00')
+})
+
+
+it('erro de produtos atrasado não aparece na próxima loja', async () => {
+	let rejeitar!: (error: Error) => void
+	fetchMock.mockImplementation(async input => {
+		if (String(input).endsWith('/auth/refresh')) {
+			return new Response(null, { status: 401 })
+		}
+		if (String(input).endsWith('/stores/loja-saint/products')) {
+			return new Promise((_resolve, reject) => { rejeitar = reject })
+		}
+		if (String(input).endsWith('/products')) {
+			return Response.json([])
+		}
+		if (String(input).endsWith('/stores/slug/adora')) {
+			return Response.json({ ...loja, id: 'loja-adora', name: 'Adora', slug: 'adora', logo: null, cover: null })
+		}
+		return Response.json(loja)
+	})
+	await abrirPagina()
+	await act(async () => {
+		window.history.pushState({}, '', '/adora')
+		window.dispatchEvent(new PopStateEvent('popstate'))
+	})
+	await act(async () => { rejeitar(new TypeError('Falha atrasada')) })
+	expect(container.querySelector('.perfil-hero-loja h2')?.textContent).toBe('Adora')
+	expect(container.querySelector('[role="alert"]')).toBeNull()
 })

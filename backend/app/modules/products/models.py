@@ -45,8 +45,8 @@ class ProductImage(Base):
 	position: Mapped[int] = mapped_column(Integer, nullable=False)
 
 	__table_args__ = (
-		# Cinco posições únicas garantem o limite de imagens, inclusive em inserções concorrentes.
+		# Quatro posições únicas garantem o limite de imagens, inclusive em inserções concorrentes.
 		UniqueConstraint('product_id', 'position', name='uq_product_images_product_position', deferrable=True, initially='IMMEDIATE'),
-		CheckConstraint('position BETWEEN 1 AND 5', name='ck_product_images_position'),
+		CheckConstraint('position BETWEEN 1 AND 4', name='ck_product_images_position'),
 		CheckConstraint("btrim(storage_path) <> ''", name='ck_product_images_storage_path'),
 	)

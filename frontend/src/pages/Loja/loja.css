@@ -8,6 +8,7 @@
 
 .mensagem-loja {
 	padding: 24px;
+	color: #303030;
 	text-align: center;
 }
 
@@ -17,10 +18,11 @@
 	border: 1px solid #83868d;
 	border-radius: 20px;
 	background-color: transparent;
-	color: #ffffff;
+	color: #303030;
 	font: inherit;
 	cursor: pointer;
 }
+
 .mensagem-produtos-loja {
 	padding: 24px;
 	color: #303030;

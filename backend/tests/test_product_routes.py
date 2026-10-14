@@ -6,6 +6,7 @@ from sqlalchemy import select
 from app.core.database import SessionLocal
 from app.modules.auth.security import create_access_token
 from app.modules.products.models import Product, ProductSize
+from app.modules.stores.models import StoreMember
 
 
 def headers_for(user_id):
@@ -123,3 +124,42 @@ def test_create_does_not_accept_a_store_id_from_the_body(client, shop):
 
 	with SessionLocal() as db:
 		assert db.scalars(select(Product)).all() == []
+
+
+@pytest.mark.parametrize('data', [{'name': '   ', 'price': '10.00'}, {'name': 'x' * 121, 'price': '10.00'}, {'name': 'Camiseta', 'price': '-1.00'}, {'name': 'Camiseta', 'price': '0.001'}, {'name': 'Camiseta', 'price': 'NaN'}, {'name': 'Camiseta', 'price': True}, {'name': 'Camiseta'}, {'price': '10.00'}])
+def test_invalid_creation_does_not_save_a_product(client, shop, data):
+	response = client.post(f"/stores/{shop['store_id']}/products", json=data, headers=headers_for(shop['owner_id']))
+	assert response.status_code == 422
+
+	with SessionLocal() as db:
+		assert db.scalars(select(Product)).all() == []
+
+
+@pytest.mark.parametrize('data', [{'size': ''}, {'size': '   '}, {'size': 'x' * 21}, {'size': None}, {'size': 'M', 'available': 'false'}, {'size': 'M', 'available': None}, {'size': 'M', 'available': 0}])
+def test_invalid_size_creation_preserves_existing_sizes(client, shop, product, data):
+	response = client.post(f"/stores/{shop['store_id']}/products/{product}/sizes", json=data, headers=headers_for(shop['manager_id']))
+	assert response.status_code == 422
+
+	with SessionLocal() as db:
+		assert db.scalars(select(ProductSize)).all() == []
+
+
+def test_size_paths_are_normalized_and_unavailable_sizes_remain_stored(client, shop, product):
+	base = f"/stores/{shop['store_id']}/products/{product}/sizes"
+	headers = headers_for(shop['manager_id'])
+	assert client.post(base, json={'size': ' m ', 'available': False}, headers=headers).status_code == 201
+	assert client.get(f'/products/{product}').json()['sizes'] == []
+	assert client.patch(f'{base}/m', json={'available': True}, headers=headers).status_code == 200
+	assert client.get(f'/products/{product}').json()['sizes'] == [{'size': 'M', 'available': True}]
+	assert client.delete(f'{base}/m', headers=headers).status_code == 204
+	assert client.delete(f'{base}/m', headers=headers).status_code == 404
+
+
+def test_removed_member_cannot_modify_products(client, shop, product):
+	headers = headers_for(shop['manager_id'])
+	with SessionLocal() as db:
+		db.delete(db.get(StoreMember, (shop['store_id'], shop['manager_id'])))
+		db.commit()
+
+	assert client.patch(f"/stores/{shop['store_id']}/products/{product}", json={'name': 'Alterado'}, headers=headers).status_code == 403
+	assert client.get(f'/products/{product}').json()['name'] == 'Camiseta'

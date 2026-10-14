@@ -41,6 +41,10 @@ export function Loja() {
 
 				const data: ProdutoResponse[] = await response.json()
 
+				if (!Array.isArray(data)) {
+					throw new Error('Resposta de produtos inválida.')
+				}
+
 				if (!controller.signal.aborted) {
 					setProdutos(data)
 				}

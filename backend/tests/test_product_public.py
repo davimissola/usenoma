@@ -3,6 +3,7 @@ from decimal import Decimal
 import pytest
 from sqlalchemy import event
 
+from app.core.config import settings
 from app.core.database import SessionLocal, engine
 from app.modules.products.models import Product, ProductImage, ProductSize
 
@@ -89,3 +90,31 @@ def test_listing_more_products_does_not_add_queries_per_product(client, shop, pr
 		assert len(statements) == initial_count
 	finally:
 		event.remove(engine, 'before_cursor_execute', count_selects)
+
+
+def test_detail_reads_without_storage_configuration_when_product_has_no_images(client, shop, product, monkeypatch):
+	monkeypatch.setattr(settings, 'supabase_url', None)
+	response = client.get(f'/products/{product}')
+	assert response.status_code == 200
+	assert response.json()['images'] == []
+	assert response.json()['sizes'] == []
+	assert client.get(f"/stores/{shop['store_id']}/products").json() == [response.json()]
+
+
+def test_public_catalog_default_limit_and_available_sizes(client, shop):
+	with SessionLocal() as db:
+		rows = [Product(store_id=shop['store_id'], name=f'Produto {index}', price=Decimal('0.00')) for index in range(21)]
+		db.add_all(rows)
+		db.flush()
+		for row in rows:
+			db.add(ProductSize(product_id=row.id, size='M', available=False))
+		db.commit()
+		expected = sorted(str(row.id) for row in rows)
+
+	base = f"/stores/{shop['store_id']}/products"
+	first = client.get(base).json()
+	second = client.get(f'{base}?offset=20').json()
+	assert [row['id'] for row in first + second] == expected
+	assert len(first) == 20
+	assert len(second) == 1
+	assert all(row['sizes'] == [] and row['images'] == [] and row['price'] == '0.00' for row in first + second)

@@ -43,6 +43,8 @@ As tabelas ficam no schema `app`. Mantenha esse schema fora dos schemas expostos
 
 A API usa a porta `8000`. Para encerrar, pressione `Ctrl+C`.
 
+Execute `alembic upgrade head` também após atualizar o código quando houver novas migrations. No módulo de produtos, `0005` cria as três tabelas, `0006` permite reordenar imagens e `0007` limita cada produto a 4 imagens. `alembic current` deve indicar `0007`; se aparecer `relation "app.products" does not exist`, confira as migrations e se a API usa o mesmo `DATABASE_URL`.
+
 Para futuras alterações, gere uma revisão, confira o código e aplique a migration:
 
 ```powershell
