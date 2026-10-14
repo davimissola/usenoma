@@ -21,3 +21,12 @@
 	font: inherit;
 	cursor: pointer;
 }
+.mensagem-produtos-loja {
+	padding: 24px;
+	color: #303030;
+	text-align: center;
+}
+
+.mensagem-produtos-loja button {
+	color: #303030;
+}

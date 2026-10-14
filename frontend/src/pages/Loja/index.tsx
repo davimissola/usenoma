@@ -9,7 +9,7 @@ import fotoTeste04 from '../../assets/svg/illustrations/fotoTeste04.png'
 import fotoTeste06 from '../../assets/svg/illustrations/fotoTeste01.png'
 import { apiUrl } from '../../config'
 import type { LojaPublicaResponse } from '../../types/lojas'
-import { produtosMock } from './produtos-mock'
+import type { ProdutoResponse } from '../../types/produtos'
 import './loja.css'
 
 
@@ -17,15 +17,45 @@ export function Loja() {
 	const [loja, setLoja] = useState<LojaPublicaResponse | null>(null)
 	const [erro, setErro] = useState('')
 	const [tentativa, setTentativa] = useState(0)
+	const [produtos, setProdutos] = useState<ProdutoResponse[] | null>(null)
+	const [erroProdutos, setErroProdutos] = useState('')
 	const { slug } = useParams()
 	const navigate = useNavigate()
 
 	useEffect(() => {
 		const controller = new AbortController()
 
+		async function buscarProdutos(storeId: string) {
+			try {
+				const response = await fetch(`${apiUrl}/stores/${storeId}/products`, {
+					signal: controller.signal
+				})
+
+				if (controller.signal.aborted) {
+					return
+				}
+
+				if (!response.ok) {
+					throw new Error('Falha ao carregar produtos.')
+				}
+
+				const data: ProdutoResponse[] = await response.json()
+
+				if (!controller.signal.aborted) {
+					setProdutos(data)
+				}
+			} catch {
+				if (!controller.signal.aborted) {
+					setErroProdutos('Não foi possível carregar os produtos. Tente novamente.')
+				}
+			}
+		}
+
 		async function buscarLoja() {
 			setLoja(null)
 			setErro('')
+			setProdutos(null)
+			setErroProdutos('')
 
 			try {
 				// Leitura pública: não envia Bearer nem depende da recuperação da sessão.
@@ -50,6 +80,7 @@ export function Loja() {
 
 				if (!controller.signal.aborted) {
 					setLoja(data)
+					await buscarProdutos(data.id)
 				}
 			} catch {
 				if (!controller.signal.aborted) {
@@ -87,7 +118,14 @@ export function Loja() {
 				{loja && (
 					<>
 						<HeroLojaCapa key={loja.id} image={imagemCapa?.url} largeImage={loja.cover?.large?.url} logo={imagemLogo?.url} nomeLoja={loja.name} />
-						<FaixaProdutosLoja titulo='Destaques da semana' produtos={produtosMock} />
+						{produtos === null && !erroProdutos && <p className='mensagem-produtos-loja'>Carregando produtos...</p>}
+						{erroProdutos && (
+							<div className='mensagem-loja mensagem-produtos-loja'>
+								<p role="alert">{erroProdutos}</p>
+								<button type="button" onClick={() => setTentativa(tentativa => tentativa + 1)}>Tentar novamente</button>
+							</div>
+						)}
+						{produtos && <FaixaProdutosLoja titulo='Destaques da semana' produtos={produtos} />}
 						<ImagemEditorialLoja imagens={[fotoTeste02, fotoTeste04, fotoTeste06]} />
 					</>
 				)}

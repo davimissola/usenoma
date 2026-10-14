@@ -2,6 +2,7 @@ import type { FaixaProdutosLojaProps } from '../../../types/lojas'
 import './faixa-produtos-loja.css'
 
 
+// O preço chega como string decimal; Number é usado somente para exibir a moeda.
 const formatoPreco = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
 
 
@@ -17,11 +18,15 @@ export function FaixaProdutosLoja({ titulo, produtos }: FaixaProdutosLojaProps) 
 				{produtos.map((produto) => (
 					<div className='produto-loja' key={produto.id}>
 						<figure className='imagem-produto'>
-							<img className='imagem-produto-loja' src={produto.image} alt={produto.name} loading="lazy" />
+							{produto.images.length > 0 ? (
+								<img className='imagem-produto-loja' src={produto.images[0].variants.card.url} alt={produto.name} loading="lazy" />
+							) : (
+								<div className='imagem-produto-loja imagem-produto-ausente' aria-hidden="true" />
+							)}
 
 							<figcaption className='legenda-produto-loja'>
 								<h3>{produto.name}</h3>
-								<p>{formatoPreco.format(produto.price)}</p>
+								<p>{formatoPreco.format(Number(produto.price))}</p>
 							</figcaption>
 						</figure>
 					</div>

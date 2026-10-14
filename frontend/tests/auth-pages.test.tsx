@@ -34,6 +34,10 @@ beforeEach(() => {
 			return Response.json({ id: 'loja-saint', name: 'Saint', slug: 'saint', description: null, logo: null, cover: null })
 		}
 
+		if (String(input).endsWith('/products')) {
+			return Response.json([])
+		}
+
 		return Response.json({ id: '937a54e0-9c4e-40f7-9c3d-5b32994d0318', username: 'davi', email: 'davi@example.com', stores: [] })
 	})
 
@@ -108,6 +112,9 @@ it('recupera a sessão após F5 em Usuario sem passar por Acesso', async () => {
 it('mostra os cards do usuário e abre a loja pelo slug', async () => {
 	definirSessao('token-valido')
 	fetchMock.mockImplementation(async input => {
+		if (String(input).endsWith('/products')) {
+			return Response.json([])
+		}
 		if (String(input).endsWith('/stores/slug/adora-brasil')) {
 			return Response.json({ id: 'loja-adora', name: 'Adora', slug: 'adora-brasil', description: null, logo: null, cover: null })
 		}
@@ -138,7 +145,7 @@ it('busca a loja pelo slug e abre a hero mesmo sem sessão', async () => {
 	expect(window.location.pathname).toBe('/saint')
 	expect(container.querySelector('.pages-loja .hero-loja-capa')).not.toBeNull()
 	expect(container.querySelector('.header')).not.toBeNull()
-	expect(fetchMock.mock.calls.filter(call => !String(call[0]).endsWith('/auth/refresh')).every(call => String(call[0]).endsWith('/stores/slug/saint'))).toBe(true)
+	expect(fetchMock.mock.calls.filter(call => !String(call[0]).endsWith('/auth/refresh')).every(call => String(call[0]).endsWith('/stores/slug/saint') || String(call[0]).endsWith('/stores/loja-saint/products'))).toBe(true)
 })
 
 

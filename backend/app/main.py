@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.modules.auth.routes import router as auth_router
+from app.modules.products.routes import router as products_router
 from app.modules.stores.routes import router as stores_router
 from app.modules.users.routes import router as users_router
 
@@ -30,3 +31,4 @@ async def validation_error_handler(request: Request, error: RequestValidationErr
 app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(stores_router)
+app.include_router(products_router)

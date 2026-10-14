@@ -1,3 +1,6 @@
+import type { ProdutoResponse } from './produtos'
+
+
 export type VarianteImagemLojaResponse = {
 	url: string
 	mime_type: 'image/jpeg' | 'image/png' | 'image/webp'
@@ -28,16 +31,9 @@ export type HeroLojaCapaProps = {
 	nomeLoja: string
 }
 
-export type ProdutoLoja = {
-	id: string
-	name: string
-	price: number
-	image: string
-}
-
 export type FaixaProdutosLojaProps = {
 	titulo: string
-	produtos: ProdutoLoja[]
+	produtos: ProdutoResponse[]
 }
 
 export type ImagemEditorialLojaProps = {

@@ -1,6 +1,8 @@
 import os
+from decimal import Decimal
 from pathlib import Path
 from secrets import token_urlsafe
+from unittest.mock import Mock
 
 import pytest
 from sqlalchemy.engine import make_url
@@ -26,7 +28,10 @@ from alembic.config import Config
 from fastapi.testclient import TestClient
 
 from app.core.database import SessionLocal, engine
+from app.core.config import settings
 from app.main import app
+from app.modules.products import storage as product_storage_module
+from app.modules.products.models import Product
 from app.modules.stores.models import Store, StoreMember
 from app.modules.users.models import User
 
@@ -44,7 +49,7 @@ def migrate_database():
 @pytest.fixture(autouse=True)
 def clean_database(migrate_database):
 	with engine.begin() as connection:
-		connection.exec_driver_sql('TRUNCATE TABLE app.store_image_variants, app.store_images, app.store_members, app.stores, app.auth_sessions, app.users')
+		connection.exec_driver_sql('TRUNCATE TABLE app.product_images, app.product_sizes, app.products, app.store_image_variants, app.store_images, app.store_members, app.stores, app.auth_sessions, app.users')
 
 
 @pytest.fixture
@@ -73,3 +78,22 @@ def shop():
 		db.commit()
 
 		return {'store_id': store.id, 'other_store_id': other_store.id, 'owner_id': owner.id, 'manager_id': manager.id, 'outsider_id': outsider.id, 'new_user_id': new_user.id}
+
+
+@pytest.fixture
+def product(shop):
+	with SessionLocal() as db:
+		row = Product(store_id=shop['store_id'], name='Camiseta', price=Decimal('149.90'), description='Algodão.')
+		db.add(row)
+		db.commit()
+		return row.id
+
+
+@pytest.fixture
+def product_storage(monkeypatch):
+	monkeypatch.setattr(settings, 'supabase_url', 'https://product-project.supabase.co')
+	monkeypatch.setattr(settings, 'supabase_storage_bucket', 'store-media')
+	upload, delete = Mock(), Mock()
+	monkeypatch.setattr(product_storage_module, 'upload_image', upload)
+	monkeypatch.setattr(product_storage_module, 'delete_image', delete)
+	return upload, delete

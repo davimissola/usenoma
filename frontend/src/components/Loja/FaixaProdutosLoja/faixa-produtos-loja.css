@@ -34,6 +34,12 @@
 	object-fit: cover;
 }
 
+.imagem-produto-ausente {
+	width: 205px;
+	height: 250px;
+	background-color: #f5f5f5;
+}
+
 .legenda-produto-loja {
 	padding: 1px 0;
 	text-align: center;
@@ -56,6 +62,11 @@
 	.imagem-produto-loja {
 		max-width: 400px;
 		min-height: 400px;
+	}
+
+	.imagem-produto-ausente {
+		width: 400px;
+		height: 400px;
 	}
 }
 

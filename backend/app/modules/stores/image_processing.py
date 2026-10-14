@@ -51,38 +51,39 @@ def validate_store_image(file: UploadFile) -> bytes:
 	return data
 
 
+def normalize_image(data: bytes) -> Image.Image:
+	# Lojas e produtos precisam da mesma correção de pixels, sem compartilhar seus presets.
+	with BytesIO(data) as buffer, Image.open(buffer) as image:
+		image.load()
+		ImageOps.exif_transpose(image, in_place=True)
+
+		if 'A' in image.getbands() or 'transparency' in image.info:
+			mode = 'RGBA'
+		else:
+			mode = 'RGB'
+
+		icc_profile = image.info.get('icc_profile')
+
+		if icc_profile:
+			try:
+				with BytesIO(icc_profile) as profile:
+					normalized = ImageCms.profileToProfile(image, ImageCms.ImageCmsProfile(profile), ImageCms.createProfile('sRGB'), outputMode=mode, flags=ImageCms.Flags.COPY_ALPHA)
+			except (ImageCms.PyCMSError, OSError, ValueError):
+				normalized = image.convert(mode)
+		else:
+			normalized = image.convert(mode)
+
+	normalized.info.clear()
+	return normalized
+
+
 def process_store_image(data: bytes, image_type: StoreImageType) -> dict[StoreImageVariantName, tuple[bytes, int, int]]:
 	variants = {}
 	encoded_sizes = {}
 	presets = IMAGE_PRESETS[image_type]
 
 	try:
-		with BytesIO(data) as buffer, Image.open(buffer) as image:
-			# Decodifica de verdade antes de qualquer upload e aplica rotação/espelhamento EXIF.
-			image.load()
-			ImageOps.exif_transpose(image, in_place=True)
-
-			if 'A' in image.getbands() or 'transparency' in image.info:
-				mode = 'RGBA'
-			else:
-				mode = 'RGB'
-
-			icc_profile = image.info.get('icc_profile')
-
-			if icc_profile:
-				try:
-					# Converte cores para sRGB antes de retirar o perfil, preservando também o alpha.
-					with BytesIO(icc_profile) as profile:
-						normalized = ImageCms.profileToProfile(image, ImageCms.ImageCmsProfile(profile), ImageCms.createProfile('sRGB'), outputMode=mode, flags=ImageCms.Flags.COPY_ALPHA)
-				except (ImageCms.PyCMSError, OSError, ValueError):
-					# Um ICC inválido/incompatível não invalida os pixels de uma imagem decodificada.
-					normalized = image.convert(mode)
-			else:
-				normalized = image.convert(mode)
-
-		# A imagem original já foi fechada; as cópias abaixo ficam limitadas ao maior preset.
-		with normalized:
-			normalized.info.clear()
+		with normalize_image(data) as normalized:
 			largest_size = max(presets.values())
 			normalized.thumbnail((largest_size, largest_size), Image.Resampling.LANCZOS)
 
