@@ -1,0 +1,28 @@
+.imagens-editoriais-loja {
+	display: flex;
+	gap: 10px;
+	width: 100%;
+	overflow-x: auto;
+	overscroll-behavior-x: contain;
+	scroll-snap-type: x proximity;
+	scrollbar-width: none;
+}
+
+.imagens-editoriais-loja::-webkit-scrollbar {
+	display: none;
+}
+
+.imagem-editorial-loja {
+	display: block;
+	flex-shrink: 0;
+	width: 80%;
+	aspect-ratio: 4 / 5;
+	object-fit: cover;
+	scroll-snap-align: start;
+}
+
+@media (min-width: 1024px) {
+	.imagem-editorial-loja {
+		width: calc((100% - 20px) / 3);
+	}
+}

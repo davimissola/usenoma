@@ -1,9 +1,15 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Header } from '../../components/Header'
-import { HeroLojaCapa } from '../../components/HeroLojaCapa'
+import { HeroLojaCapa } from '../../components/Loja/HeroLojaCapa'
+import { FaixaProdutosLoja } from '../../components/Loja/FaixaProdutosLoja'
+import { ImagemEditorialLoja } from '../../components/Loja/ImagemEditorialLoja'
+import fotoTeste02 from '../../assets/svg/illustrations/fotoTeste02.png'
+import fotoTeste04 from '../../assets/svg/illustrations/fotoTeste04.png'
+import fotoTeste06 from '../../assets/svg/illustrations/fotoTeste01.png'
 import { apiUrl } from '../../config'
 import type { LojaPublicaResponse } from '../../types/lojas'
+import { produtosMock } from './produtos-mock'
 import './loja.css'
 
 
@@ -78,7 +84,13 @@ export function Loja() {
 					</div>
 				)}
 
-				{loja && <HeroLojaCapa key={loja.id} image={imagemCapa?.url} largeImage={loja.cover?.large?.url} logo={imagemLogo?.url} nomeLoja={loja.name} />}
+				{loja && (
+					<>
+						<HeroLojaCapa key={loja.id} image={imagemCapa?.url} largeImage={loja.cover?.large?.url} logo={imagemLogo?.url} nomeLoja={loja.name} />
+						<FaixaProdutosLoja titulo='Destaques da semana' produtos={produtosMock} />
+						<ImagemEditorialLoja imagens={[fotoTeste02, fotoTeste04, fotoTeste06]} />
+					</>
+				)}
 			</main>
 		</>
 	)

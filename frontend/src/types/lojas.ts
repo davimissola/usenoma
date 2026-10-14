@@ -27,3 +27,19 @@ export type HeroLojaCapaProps = {
 	logo?: string
 	nomeLoja: string
 }
+
+export type ProdutoLoja = {
+	id: string
+	name: string
+	price: number
+	image: string
+}
+
+export type FaixaProdutosLojaProps = {
+	titulo: string
+	produtos: ProdutoLoja[]
+}
+
+export type ImagemEditorialLojaProps = {
+	imagens: [string, string, string]
+}

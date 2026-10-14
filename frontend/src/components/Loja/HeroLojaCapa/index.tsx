@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { HeroLojaCapaProps } from '../../types/lojas'
+import type { HeroLojaCapaProps } from '../../../types/lojas'
 import './hero-loja-capa.css'
 
 
