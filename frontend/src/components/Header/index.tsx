@@ -24,9 +24,9 @@ export function Header() {
 				<Link to='/acesso'>
 					<img src={userSvg} alt="User" />
 				</Link>
-				<a href="#">
+				<Link to='/carrinho'>
 					<img src={shoppingCart} alt="Cart" />
-				</a>
+				</Link>
 			</div>
 
 			<Menu menuAberto={menuAberto} setMenuAberto={setMenuAberto} />

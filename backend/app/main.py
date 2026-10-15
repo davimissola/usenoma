@@ -8,6 +8,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.config import settings
 from app.modules.auth.routes import router as auth_router
+from app.modules.cart.routes import router as cart_router
 from app.modules.products.routes import router as products_router
 from app.modules.stores.routes import router as stores_router
 from app.modules.users.routes import router as users_router
@@ -45,3 +46,4 @@ app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(stores_router)
 app.include_router(products_router)
+app.include_router(cart_router)

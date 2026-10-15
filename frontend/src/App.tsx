@@ -9,6 +9,7 @@ import { Explorar } from './pages/Explorar'
 import { Usuario } from './pages/Usuario'
 import { Loja } from './pages/Loja'
 import { Produto } from './pages/Produto'
+import { Carrinho } from './pages/Carrinho'
 
 
 function App() {
@@ -45,6 +46,7 @@ function App() {
 			<Route path='/criar-conta' element={verificandoSessao ? carregandoSessao : <CriarConta />} />
 			<Route path='/explorar' element={<Explorar />} />
 			<Route path='/produto/:id' element={<Produto />} />
+			<Route path='/carrinho' element={verificandoSessao ? <main className='pages-carrinho'><p className='mensagem-carrinho' role="status">Verificando sessão...</p></main> : <Carrinho />} />
 			<Route path='/:slug' element={<Loja />} />
 			<Route path='*' element={<Navigate to='/' replace />} />
 		</Routes>

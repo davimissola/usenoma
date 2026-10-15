@@ -43,7 +43,7 @@ As tabelas ficam no schema `app`. Mantenha esse schema fora dos schemas expostos
 
 A API usa a porta `8000`. Para encerrar, pressione `Ctrl+C`.
 
-Execute `alembic upgrade head` também após atualizar o código quando houver novas migrations. No módulo de produtos, `0005` cria as três tabelas, `0006` permite reordenar imagens e `0007` limita cada produto a 4 imagens. `alembic current` deve indicar `0007`; se aparecer `relation "app.products" does not exist`, confira as migrations e se a API usa o mesmo `DATABASE_URL`.
+Execute `alembic upgrade head` também após atualizar o código quando houver novas migrations. No módulo de produtos, `0005` cria as três tabelas, `0006` permite reordenar imagens e `0007` limita cada produto a 4 imagens. Compare `alembic current` com `alembic heads` para confirmar que o banco está atualizado; se aparecer `relation "app.products" does not exist`, confira as migrations e se a API usa o mesmo `DATABASE_URL`.
 
 Para futuras alterações, gere uma revisão, confira o código e aplique a migration:
 
@@ -149,3 +149,11 @@ Cada envio usa paths `stores/<store_id>/<type>/<uuid>/<variant>.webp`. Todas as 
 Os testes usam PostgreSQL local e simulam as operações externas de Storage. Não precisam de Supabase real.
 
 Para revisar o fluxo e as funções principais: [resumo de estudo](ESTUDO_IMAGENS.md).
+
+## Carrinho
+
+O módulo `app/modules/cart/` usa Bearer token em todas as rotas: `GET /cart`, `POST /cart/items`, `PATCH /cart/items/{item_id}`, `DELETE /cart/items/{item_id}` e `DELETE /cart`. A migration `0008` cria um carrinho por usuário e itens únicos por produto/tamanho. Aplique com `alembic upgrade head`.
+
+POST recebe `product_id`, `size` e `quantity`; PATCH recebe tamanho e/ou quantidade. POST e PATCH retornam o carrinho atualizado (`200`), e exclusões retornam `204`. Ao trocar para um tamanho já presente, a quantidade final do item de origem é somada à do destino. Quantidade deve ser um inteiro positivo; não há controle de estoque.
+
+GET não cria registros e não altera `updated_at`. Antes da primeira adição, retorna `id: null`, `updated_at: null` e `items: []`. Os itens incluem produto, imagem principal, loja, tamanho, quantidade, preço atual e subtotal como strings decimais. `available` e `unavailable_reason` identificam tamanho indisponível/removido ou produto removido. Ao excluir um produto, sua FK fica nula e o item permanece; não se mantém cópia de nome, loja ou preço antigo. Limpar um carrinho vazio ou fazer PATCH sem mudança não altera seu timestamp.

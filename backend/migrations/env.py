@@ -2,6 +2,7 @@ from alembic import context
 
 from app.core.database import Base, engine
 from app.modules.auth.models import AuthSession
+from app.modules.cart.models import Cart, CartItem
 from app.modules.products.models import Product, ProductImage, ProductSize
 from app.modules.stores.models import Store, StoreImage, StoreImageVariant, StoreMember
 from app.modules.users.models import User

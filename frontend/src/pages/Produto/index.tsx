@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Header } from '../../components/Header'
 import { GaleriaProduto } from '../../components/Produto/GaleriaProduto'
 import { apiUrl } from '../../config'
+import { recuperarSessao, requisicaoAutenticada } from '../../stores/auth'
 import type { ProdutoResponse } from '../../types/produtos'
 import './produto.css'
 
@@ -16,7 +17,12 @@ export function Produto() {
 	const [naoEncontrado, setNaoEncontrado] = useState(false)
 	const [tentativa, setTentativa] = useState(0)
 	const [tamanhoSelecionado, setTamanhoSelecionado] = useState('')
+	const [erroTamanho, setErroTamanho] = useState(false)
+	const [erroCarrinho, setErroCarrinho] = useState('')
+	const [enviando, setEnviando] = useState(false)
+	const envioCarrinho = useRef<AbortController | null>(null)
 	const { id } = useParams()
+	const navigate = useNavigate()
 
 	useEffect(() => {
 		const controller = new AbortController()
@@ -26,6 +32,9 @@ export function Produto() {
 			setErro('')
 			setNaoEncontrado(false)
 			setTamanhoSelecionado('')
+			setErroTamanho(false)
+			setErroCarrinho('')
+			setEnviando(false)
 
 			try {
 				// Detalhe público: não depende da sessão nem envia token de autenticação.
@@ -66,8 +75,78 @@ export function Produto() {
 
 		return () => {
 			controller.abort()
+			envioCarrinho.current?.abort()
+			envioCarrinho.current = null
 		}
 	}, [id, tentativa])
+
+	async function adicionarAoCarrinho() {
+		if (!produto || envioCarrinho.current) {
+			return
+		}
+
+		if (!tamanhoSelecionado) {
+			setErroTamanho(true)
+			return
+		}
+
+		// A referência bloqueia cliques repetidos antes mesmo de o botão atualizar na tela.
+		const controller = new AbortController()
+		envioCarrinho.current = controller
+		setErroCarrinho('')
+		setEnviando(true)
+
+		try {
+			// Aguarda também o refresh inicial se o usuário acabou de atualizar a página.
+			const sessaoRecuperada = await recuperarSessao()
+			if (controller.signal.aborted) {
+				return
+			}
+			if (!sessaoRecuperada) {
+				navigate('/acesso')
+				return
+			}
+
+			const response = await requisicaoAutenticada('/cart/items', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ product_id: produto.id, size: tamanhoSelecionado, quantity: 1 }),
+				signal: controller.signal
+			})
+
+			if (controller.signal.aborted) {
+				return
+			}
+			if (response.status === 401) {
+				navigate('/acesso')
+				return
+			}
+			if (!response.ok) {
+				const data: { detail?: unknown } = await response.json()
+				if (!controller.signal.aborted) {
+					if (typeof data?.detail === 'string') {
+						setErroCarrinho(data.detail)
+					} else {
+						setErroCarrinho('Não foi possível adicionar o produto ao carrinho. Tente novamente.')
+					}
+				}
+				return
+			}
+
+			navigate('/carrinho')
+		} catch {
+			if (!controller.signal.aborted) {
+				setErroCarrinho('Não foi possível adicionar o produto ao carrinho. Tente novamente.')
+			}
+		} finally {
+			if (envioCarrinho.current === controller) {
+				envioCarrinho.current = null
+				if (!controller.signal.aborted) {
+					setEnviando(false)
+				}
+			}
+		}
+	}
 
 	return (
 		<div className='pagina-produto'>
@@ -100,20 +179,25 @@ export function Produto() {
 							<p className='preco-produto'>{formatoPreco.format(Number(produto.price))}</p>
 
 							{produto.sizes.length > 0 ? (
-								<div className='tamanhos-produto' role="group" aria-label="Escolher tamanho">
-									{produto.sizes.map(tamanho => (
-										<label className='tamanho-produto' key={tamanho.size}>
-											<input type="radio" name="tamanho-produto" value={tamanho.size} checked={tamanhoSelecionado === tamanho.size} onChange={() => setTamanhoSelecionado(tamanho.size)} />
-											<span>{tamanho.size.toLowerCase()}</span>
-										</label>
-									))}
-								</div>
+								<>
+									<div className={`tamanhos-produto ${erroTamanho ? 'tamanhos-produto-erro' : ''}`} role="group" aria-label="Escolher tamanho" aria-invalid={erroTamanho} aria-describedby='validacao-tamanho-produto'>
+										{produto.sizes.map(tamanho => (
+											<label className='tamanho-produto' key={tamanho.size}>
+												<input type="radio" name="tamanho-produto" value={tamanho.size} checked={tamanhoSelecionado === tamanho.size} disabled={enviando} onChange={() => { setTamanhoSelecionado(tamanho.size); setErroTamanho(false); setErroCarrinho('') }} />
+												<span>{tamanho.size.toUpperCase()}</span>
+											</label>
+										))}
+									</div>
+
+									{/* A área permanece no layout para o botão não deslocar ao validar. */}
+									<p id='validacao-tamanho-produto' className='validacao-tamanho-produto' role={erroTamanho ? 'alert' : undefined}>{erroTamanho ? 'Selecione um tamanho' : ''}</p>
+								</>
 							) : (
 								<p className='tamanhos-ausentes-produto'>Nenhum tamanho disponível.</p>
 							)}
 
-							{/* Apenas visual nesta etapa; ainda não existe fluxo de carrinho. */}
-							<button className='botao-carrinho-produto' type="button" disabled>Carrinho</button>
+							<button className='botao-carrinho-produto' type="button" disabled={enviando || produto.sizes.length === 0} onClick={adicionarAoCarrinho}>{enviando ? 'Adicionando...' : 'Carrinho'}</button>
+							{erroCarrinho && <p className='erro-carrinho-produto' role="alert">{erroCarrinho}</p>}
 						</div>
 					</>
 				)}

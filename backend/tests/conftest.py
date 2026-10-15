@@ -49,7 +49,7 @@ def migrate_database():
 @pytest.fixture(autouse=True)
 def clean_database(migrate_database):
 	with engine.begin() as connection:
-		connection.exec_driver_sql('TRUNCATE TABLE app.product_images, app.product_sizes, app.products, app.store_image_variants, app.store_images, app.store_members, app.stores, app.auth_sessions, app.users')
+		connection.exec_driver_sql('TRUNCATE TABLE app.cart_items, app.carts, app.product_images, app.product_sizes, app.products, app.store_image_variants, app.store_images, app.store_members, app.stores, app.auth_sessions, app.users')
 
 
 @pytest.fixture

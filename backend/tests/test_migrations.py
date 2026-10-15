@@ -15,6 +15,29 @@ def test_models_match_the_applied_migrations():
 	command.check(config)
 
 
+def test_cart_migration_preserves_users_and_products_on_upgrade_and_downgrade(shop, product):
+	config = Config(str(Path(__file__).resolve().parents[1] / 'alembic.ini'))
+	cart_id, item_id = uuid4(), uuid4()
+	engine.dispose()
+
+	try:
+		command.downgrade(config, '0007')
+		command.upgrade(config, 'head')
+		with engine.begin() as connection:
+			connection.exec_driver_sql('INSERT INTO app.carts (id, user_id) VALUES (%s, %s)', (cart_id, shop['new_user_id']))
+			connection.exec_driver_sql('INSERT INTO app.cart_items (id, cart_id, product_id, size, quantity) VALUES (%s, %s, %s, %s, %s)', (item_id, cart_id, product, 'M', 2))
+			assert connection.exec_driver_sql('SELECT updated_at FROM app.carts WHERE id = %s', (cart_id,)).scalar_one().tzinfo is not None
+		command.downgrade(config, '0007')
+		with engine.connect() as connection:
+			assert connection.exec_driver_sql('SELECT id FROM app.users WHERE id = %s', (shop['new_user_id'],)).scalar_one() == shop['new_user_id']
+			assert connection.exec_driver_sql('SELECT id FROM app.products WHERE id = %s', (product,)).scalar_one() == product
+			assert connection.exec_driver_sql("SELECT to_regclass('app.carts')").scalar() is None
+			assert connection.exec_driver_sql("SELECT to_regclass('app.cart_items')").scalar() is None
+	finally:
+		command.upgrade(config, 'head')
+		engine.dispose()
+
+
 def test_pending_product_migrations_return_safe_error_and_upgrade_restores_listing(client, shop):
 	config = Config(str(Path(__file__).resolve().parents[1] / 'alembic.ini'))
 	engine.dispose()
