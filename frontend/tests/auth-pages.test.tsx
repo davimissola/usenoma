@@ -37,6 +37,9 @@ beforeEach(() => {
 		if (String(input).endsWith('/products')) {
 			return Response.json([])
 		}
+		if (String(input).includes('/users/me/addresses')) {
+			return Response.json([])
+		}
 
 		return Response.json({ id: '937a54e0-9c4e-40f7-9c3d-5b32994d0318', username: 'davi', email: 'davi@example.com', stores: [] })
 	})
@@ -149,12 +152,32 @@ it('busca a loja pelo slug e abre a hero mesmo sem sessão', async () => {
 })
 
 
-it('manda visitantes de Usuario para Acesso após concluir a verificação', async () => {
-	await abrirPagina('/usuario')
+it.each(['/usuario', '/checkout'])('manda visitantes de %s para Acesso após concluir a verificação', async path => {
+	await abrirPagina(path)
 
 	expect(window.location.pathname).toBe('/acesso')
 	expect(container.querySelector('.conteudo-acesso-buttons')).not.toBeNull()
 	expect(fetchMock).toHaveBeenCalledTimes(1)
+})
+
+
+it('checkout aguarda o refresh após F5 e abre sem passar pelo Acesso', async () => {
+	let concluirRefresh!: (response: Response) => void
+	fetchMock.mockReturnValueOnce(new Promise(resolve => { concluirRefresh = resolve }))
+
+	await abrirPagina('/checkout')
+	expect(window.location.pathname).toBe('/checkout')
+	expect(container.querySelector('form')).toBeNull()
+	expect(container.querySelector('.pages-acesso')).toBeNull()
+
+	await act(async () => {
+		concluirRefresh(Response.json({ access_token: 'token-recuperado', token_type: 'bearer' }))
+	})
+
+	expect(window.location.pathname).toBe('/checkout')
+	expect(container.querySelector('.formulario-checkout')).not.toBeNull()
+	expect(fetchMock.mock.calls.filter(([input]) => String(input).endsWith('/auth/refresh'))).toHaveLength(1)
+	expect(fetchMock.mock.calls.some(([input, options]) => String(input).includes('/users/me/addresses') && new Headers(options?.headers).get('Authorization') === 'Bearer token-recuperado')).toBe(true)
 })
 
 

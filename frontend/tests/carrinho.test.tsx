@@ -33,6 +33,9 @@ beforeEach(() => {
 		if (String(input).endsWith('/auth/refresh')) {
 			return new Response(null, { status: 401 })
 		}
+		if (String(input).includes('/users/me/addresses')) {
+			return Response.json([])
+		}
 		return Response.json(carrinho)
 	})
 
@@ -549,11 +552,18 @@ it('produto gratuito mantém subtotal zero e o resumo visível enquanto houver i
 })
 
 
-it('Finalizar Compra fica preparado visualmente, sem navegar ou iniciar checkout', async () => {
+it('Finalizar Compra abre o checkout e carrega endereços sem iniciar pagamento', async () => {
 	await abrirPagina()
 	const consultas = fetchMock.mock.calls.length
-	expect(container.querySelector<HTMLButtonElement>('.finalizar-compra-carrinho')?.disabled).toBe(true)
+	expect(container.querySelector<HTMLButtonElement>('.finalizar-compra-carrinho')?.disabled).toBe(false)
 	await clicar('.finalizar-compra-carrinho')
-	expect(window.location.pathname).toBe('/carrinho')
-	expect(fetchMock.mock.calls).toHaveLength(consultas)
+	expect(window.location.pathname).toBe('/checkout')
+	expect(container.querySelector('.formulario-checkout')).not.toBeNull()
+	expect(fetchMock.mock.calls.slice(consultas).every(([input, options]) => String(input).includes('/users/me/addresses') && !options?.method)).toBe(true)
+	const consultasCheckout = fetchMock.mock.calls.length
+	await clicar('input[value="pix"]')
+	expect(container.querySelector('.campos-cartao-checkout')).toBeNull()
+	await clicar('input[value="cartao"]')
+	expect(container.querySelector('.campos-cartao-checkout')).not.toBeNull()
+	expect(fetchMock.mock.calls).toHaveLength(consultasCheckout)
 })

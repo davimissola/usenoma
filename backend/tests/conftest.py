@@ -49,13 +49,18 @@ def migrate_database():
 @pytest.fixture(autouse=True)
 def clean_database(migrate_database):
 	with engine.begin() as connection:
-		connection.exec_driver_sql('TRUNCATE TABLE app.cart_items, app.carts, app.product_images, app.product_sizes, app.products, app.store_image_variants, app.store_images, app.store_members, app.stores, app.auth_sessions, app.users')
+		connection.exec_driver_sql('TRUNCATE TABLE app.user_addresses, app.cart_items, app.carts, app.product_images, app.product_sizes, app.products, app.store_image_variants, app.store_images, app.store_members, app.stores, app.auth_sessions, app.users')
 
 
 @pytest.fixture
 def client():
 	with TestClient(app, base_url='https://api.noma.test', headers={'Origin': 'https://noma.test'}) as test_client:
 		yield test_client
+
+
+@pytest.fixture
+def address_data():
+	return {'recipient_name': 'Maria da Silva', 'postal_code': '01001000', 'street': 'Praça da Sé', 'number': '10 A', 'neighborhood': 'Sé', 'city': 'São Paulo', 'state': 'SP', 'phone': '11999998888'}
 
 
 @pytest.fixture

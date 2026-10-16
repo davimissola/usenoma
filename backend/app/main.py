@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.config import settings
+from app.modules.addresses.routes import router as addresses_router
 from app.modules.auth.routes import router as auth_router
 from app.modules.cart.routes import router as cart_router
 from app.modules.products.routes import router as products_router
@@ -44,6 +45,7 @@ async def database_error_handler(request: Request, error: SQLAlchemyError) -> JS
 
 app.include_router(auth_router)
 app.include_router(users_router)
+app.include_router(addresses_router)
 app.include_router(stores_router)
 app.include_router(products_router)
 app.include_router(cart_router)

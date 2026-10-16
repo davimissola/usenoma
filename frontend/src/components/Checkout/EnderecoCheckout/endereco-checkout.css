@@ -1,0 +1,75 @@
+.mensagem-endereco-checkout {
+	margin-bottom: 12px;
+	color: #838383;
+	font-size: 14px;
+	line-height: 1.4;
+}
+
+.erro-endereco-checkout {
+	color: #8c4938;
+}
+
+.seletor-enderecos-checkout {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin-bottom: 14px;
+}
+
+.seletor-enderecos-checkout label {
+	color: #838383;
+	font-size: 14px;
+}
+
+.seletor-enderecos-checkout select {
+	border-radius: 12px;
+}
+
+.edicao-endereco-checkout {
+	min-width: 0;
+	border: none;
+}
+
+.acoes-endereco-checkout {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 12px 20px;
+	margin-top: 14px;
+}
+
+.salvar-endereco-checkout {
+	flex-basis: 100%;
+	min-height: 48px;
+	padding: 12px 24px;
+	border: none;
+	border-radius: 24px;
+	background-color: #080808;
+	color: #ffffff;
+	font: inherit;
+	font-size: 16px;
+	cursor: pointer;
+}
+
+.acao-endereco-checkout {
+	padding: 6px 0;
+	border: none;
+	background-color: transparent;
+	color: #646464;
+	font: inherit;
+	font-size: 14px;
+	text-decoration: underline;
+	text-underline-offset: 3px;
+	cursor: pointer;
+}
+
+.edicao-endereco-checkout:disabled button {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+@media (min-width: 768px) {
+	.salvar-endereco-checkout {
+		flex-basis: auto;
+	}
+}

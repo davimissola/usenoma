@@ -289,7 +289,13 @@ export function Carrinho() {
 								<strong className='valor-subtotal-carrinho' aria-live="polite">{subtotalFormatado}</strong>
 							</div>
 							<p className='frete-resumo-carrinho'>Frete calculado no final da compra.</p>
-							<button className='finalizar-compra-carrinho' type="button" disabled>Finalizar Compra</button>
+
+							<div className='cupom-resumo-carrinho'>
+								<input type="text" name="cupom" placeholder="Insira seu cupom de desconto" aria-label="Cupom de desconto" autoComplete="off" />
+								<button className='aplicar-cupom-carrinho' type="button">Aplicar</button>
+							</div>
+
+							<button className='finalizar-compra-carrinho' type="button" disabled={alterando || carregando} onClick={() => navigate('/checkout')}>Finalizar Compra</button>
 						</div>
 					</footer>
 				)}

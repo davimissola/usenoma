@@ -15,6 +15,30 @@ def test_models_match_the_applied_migrations():
 	command.check(config)
 
 
+def test_address_migration_preserves_existing_users_products_and_carts(shop, product):
+	config = Config(str(Path(__file__).resolve().parents[1] / 'alembic.ini'))
+	cart_id, address_id = uuid4(), uuid4()
+	with engine.begin() as connection:
+		connection.exec_driver_sql('INSERT INTO app.carts (id, user_id) VALUES (%s, %s)', (cart_id, shop['new_user_id']))
+	engine.dispose()
+
+	try:
+		command.downgrade(config, '0008')
+		command.upgrade(config, 'head')
+		with engine.begin() as connection:
+			connection.exec_driver_sql('INSERT INTO app.user_addresses (id, user_id, recipient_name, postal_code, street, number, neighborhood, city, state, phone, is_default) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, true)', (address_id, shop['new_user_id'], 'Maria', '01001000', 'Praça da Sé', '10', 'Sé', 'São Paulo', 'SP', '11999998888'))
+			assert connection.exec_driver_sql('SELECT is_default FROM app.user_addresses WHERE id = %s', (address_id,)).scalar_one() is True
+		command.downgrade(config, '0008')
+		with engine.connect() as connection:
+			assert connection.exec_driver_sql("SELECT to_regclass('app.user_addresses')").scalar() is None
+			assert connection.exec_driver_sql('SELECT id FROM app.users WHERE id = %s', (shop['new_user_id'],)).scalar_one() == shop['new_user_id']
+			assert connection.exec_driver_sql('SELECT id FROM app.products WHERE id = %s', (product,)).scalar_one() == product
+			assert connection.exec_driver_sql('SELECT id FROM app.carts WHERE id = %s', (cart_id,)).scalar_one() == cart_id
+	finally:
+		command.upgrade(config, 'head')
+		engine.dispose()
+
+
 def test_cart_migration_preserves_users_and_products_on_upgrade_and_downgrade(shop, product):
 	config = Config(str(Path(__file__).resolve().parents[1] / 'alembic.ini'))
 	cart_id, item_id = uuid4(), uuid4()
